@@ -12,9 +12,14 @@ repositories {
 	mavenCentral()
 }
 
+val kubernetesJavaClientVersion = "13.0.0"
+
 dependencies {
     implementation(enforcedPlatform(org.springframework.boot.gradle.plugin.SpringBootPlugin.BOM_COORDINATES))
 	implementation("org.springframework.boot:spring-boot-starter-actuator")
+
+	implementation("io.kubernetes:client-java:${kubernetesJavaClientVersion}")
+	implementation("io.kubernetes:client-java-spring-integration:${kubernetesJavaClientVersion}")
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
 }
 
@@ -27,7 +32,7 @@ tasks {
 sourceSets {
 	main {
 		java {
-			srcDirs.add(File("src/generated/java"))
+			srcDirs("src/generated/java")
 		}
 	}
 }

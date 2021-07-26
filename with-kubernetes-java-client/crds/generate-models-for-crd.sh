@@ -38,7 +38,7 @@ generate() {
   done
 
   echo "Generating models and clients"
-  bash java-crd-cmd.sh -n sample.operator.java -p com.example.operator.withkubernetesjavaclient -l 2 -h true -o /tmp/gen-output -g true < /tmp/swagger
+  bash java-crd-cmd.sh -n com.example.operator -p com.example.operator.withkubernetesjavaclient -l 2 -h true -o /tmp/gen-output -g true < /tmp/swagger
 }
 
 copyToProject() {

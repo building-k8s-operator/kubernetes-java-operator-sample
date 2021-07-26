@@ -1,4 +1,4 @@
-apiVersion: "sample.operator.java/v1alpha1"
+apiVersion: "operator.example.com/v1alpha1"
 kind: PingService
 metadata:
   name: my-ping-service
