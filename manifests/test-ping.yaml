@@ -1,0 +1,7 @@
+apiVersion: "sample.operator.java/v1alpha1"
+kind: PingService
+metadata:
+  name: my-ping-service
+spec:
+  path: /actuator/info
+

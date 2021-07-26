@@ -19,9 +19,11 @@ dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-actuator")
     implementation("io.javaoperatorsdk:operator-framework-spring-boot-starter:${javaOperatorVersion}")
     implementation("io.javaoperatorsdk:operator-framework:${javaOperatorVersion}")
-    implementation("io.fabric8:crd-generator-apt:5.6.0")
 
     annotationProcessor("io.javaoperatorsdk:operator-framework:${javaOperatorVersion}")
+
+    //https://github.com/fabric8io/kubernetes-client/tree/master/crd-generator
+    compileOnly("io.fabric8:crd-generator-apt:5.6.0")
 
     testImplementation("io.javaoperatorsdk:operator-framework-spring-boot-starter-test:${javaOperatorVersion}")
 	testImplementation("org.springframework.boot:spring-boot-starter-test")

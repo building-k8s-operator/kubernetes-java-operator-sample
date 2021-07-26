@@ -23,3 +23,11 @@ tasks {
     	useJUnitPlatform()
     }
 }
+
+sourceSets {
+	main {
+		java {
+			srcDirs.add(File("src/generated/java"))
+		}
+	}
+}
