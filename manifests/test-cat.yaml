@@ -1,0 +1,7 @@
+apiVersion: "operator.example.com/v1alpha1"
+kind: CatForAdoption
+metadata:
+  name: my-precious-fluffy-ball
+spec:
+  name: Chocobo
+  dateOfBirth: 2013-09-17

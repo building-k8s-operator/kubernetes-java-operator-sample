@@ -5,7 +5,7 @@ set -euo pipefail
 readonly CLIENT_GEN_DIR="/tmp/kubernetes-client-gen"
 readonly MODULE_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")"/.. && pwd)"
 
-readonly CRD_MANIFEST_FILE=$MODULE_ROOT/crds/ping-service-crd.yaml
+readonly CRD_MANIFEST_FILE=$MODULE_ROOT/crds/custom-resource-definition.yaml
 
 readonly PACKAGE_NAME=com/example/operator/withkubernetesjavaclient
 readonly GENERATED_SOURCES_PATH=src/generated/java/$PACKAGE_NAME
@@ -31,7 +31,7 @@ generate() {
 
   echo "Reading OpenAPI endpoint until CRD shows up"
   kubectl get --raw="/openapi/v2" > /tmp/swagger
-  while ! (grep -Fq '"PingService"' /tmp/swagger); do
+  while ! (grep -Fq '"CatForAdoption"' /tmp/swagger); do
     echo "Waiting for CRD to be applied..."
     sleep 1
     kubectl get --raw="/openapi/v2" > /tmp/swagger

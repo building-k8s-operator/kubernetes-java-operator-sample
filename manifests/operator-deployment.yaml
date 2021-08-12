@@ -1,0 +1,23 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: adoption-operator
+spec:
+  selector:
+    matchLabels:
+      app: adoption-operator
+  template:
+    metadata:
+      labels:
+        app: adoption-operator
+    spec:
+      containers:
+        - name: adoption-operator
+          image: springcloudservices/adoption-operator
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "100m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"

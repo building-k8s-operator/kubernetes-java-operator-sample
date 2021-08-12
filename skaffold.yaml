@@ -1,0 +1,35 @@
+apiVersion: skaffold/v2beta17
+kind: Config
+build:
+  artifacts:
+  - image: springcloudservices/adoption-operator
+    context: with-kubernetes-java-client
+    buildpacks:
+      builder: gcr.io/paketo-buildpacks/builder:base
+      dependencies:
+        paths:
+          - src/main/**
+          - build.gradle.kts
+  - image: springcloudservices/adoption-center
+    context: adoption-center
+    buildpacks:
+      builder: gcr.io/paketo-buildpacks/builder:base
+      dependencies:
+        paths:
+          - src/main/**
+          - build.gradle.kts
+deploy:
+  kubectl:
+    manifests:
+    - ./crds/custom-resource-definition.yaml
+    - ./manifests/operator-deployment.yaml
+    flags:
+      apply:
+      - --force
+
+profiles:
+  - name: with-java-operator-sdk
+    patches:
+      - op: replace
+        path: /build/artifacts/0/context
+        value: with-java-operator-sdk

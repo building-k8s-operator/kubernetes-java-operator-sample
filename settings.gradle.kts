@@ -9,4 +9,4 @@
 
 rootProject.name = "kubernetes-java-operator-sample"
 
-include("with-kubernetes-java-client", "with-java-operator-sdk")
+include("adoption-center", "with-kubernetes-java-client", "with-java-operator-sdk")

@@ -1,7 +1,7 @@
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
-  name: pingservices.operator.example.com
+  name: catsforadoption.operator.example.com
 spec:
   group: operator.example.com
   scope: Namespaced
@@ -12,9 +12,6 @@ spec:
       storage: true
       subresources:
         status: { }
-        scale:
-          specReplicasPath: .spec.count
-          statusReplicasPath: .status.replicas
       additionalPrinterColumns:
         - jsonPath: .status.conditions[?(@.type=="Ready")].status
           name: Ready
@@ -29,12 +26,13 @@ spec:
             spec:
               type: object
               properties:
-                count:
-                  type: integer
-                  exclusiveMinimum: false
-                path:
+                name:
                   type: string
-                  description: The path to ping the service with
+                  description: The name of the cat
+                dateOfBirth:
+                  type: string
+                  format: date
+                  description: Date of birth of the cat in the format defined in RFC 3339, e.g. 2018-03-20
             status:
               type: object
               properties:
@@ -57,9 +55,9 @@ spec:
                         description: The reason for the condition's last transition (a single word in CamelCase).
                   description: List of status conditions.
   names:
-    plural: pingservices
-    singular: pingservice
-    kind: PingService
+    plural: catsforadoption
+    singular: catforadoption
+    kind: CatForAdoption
     shortNames:
-      - ping
-      - pings
+      - cat
+      - cats
