@@ -11,9 +11,13 @@ spec:
       labels:
         app: adoption-operator
     spec:
+      serviceAccountName: adoption-operator
       containers:
         - name: adoption-operator
           image: springcloudservices/adoption-operator
+          env:
+            - name: LOGGING_LEVEL_COM_EXAMPLE_OPERATOR
+              value: debug
           resources:
             requests:
               memory: "256Mi"
@@ -21,3 +25,20 @@ spec:
             limits:
               memory: "512Mi"
               cpu: "500m"
+          livenessProbe:
+            httpGet:
+              port: "8080"
+              path: actuator/health/liveness
+              scheme: HTTP
+            initialDelaySeconds: 3
+            periodSeconds: 3
+            readinessProbe:
+              httpGet:
+                port: "8080"
+                path: actuator/health/readiness
+                scheme: HTTP
+              initialDelaySeconds: 5
+              failureThreshold: 10
+              periodSeconds: 3
+              successThreshold: 1
+              timeoutSeconds: 1

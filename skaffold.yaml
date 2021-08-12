@@ -22,10 +22,12 @@ deploy:
   kubectl:
     manifests:
     - ./crds/custom-resource-definition.yaml
-    - ./manifests/operator-deployment.yaml
     flags:
       apply:
       - --force
+  kustomize:
+    paths:
+      - manifests
 
 profiles:
   - name: with-java-operator-sdk

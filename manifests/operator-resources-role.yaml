@@ -1,0 +1,53 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: operator-resources-role
+  labels:
+    app.kubernetes.io/part-of: adoption-operator
+rules:
+- apiGroups:
+  - operator.example.com
+  resources:
+  - catsforadoption
+  verbs:
+  - get
+  - list
+  - watch
+  - create
+  - update
+  - patch
+- apiGroups:
+    - operator.example.com
+  resources:
+    - catsforadoption/status
+  verbs:
+    - patch
+- apiGroups:
+  - "" # "" indicates the core API group
+  resources:
+  - deployments
+  verbs:
+  - get
+  - list
+  - watch
+  - create
+  - update
+  - patch
+
+- apiGroups:
+    - "" # "" indicates the core API group
+  resources:
+    - configmaps
+  verbs:
+    - get
+    - create
+    - update
+    - patch
+    - watch
+
+- apiGroups:
+  - "events.k8s.io"
+  resources:
+  - events
+  verbs:
+  - create
