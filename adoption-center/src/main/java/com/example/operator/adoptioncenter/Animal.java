@@ -1,12 +1,8 @@
-package io.spring.cloud.samples.animalrescue.backend;
+package com.example.operator.adoptioncenter;
 
 import java.util.Date;
-import java.util.HashSet;
-import java.util.Set;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
-import org.springframework.data.annotation.Id;
+import org.springframework.format.annotation.DateTimeFormat;
 
 public class Animal {
 
@@ -14,7 +10,10 @@ public class Animal {
 
 	private String namespace;
 
+	@DateTimeFormat(pattern = "yyyy-MM-dd")
 	private Date dateOfBirth;
+
+	private String description;
 
 	public String getName() {
 		return name;
@@ -40,12 +39,21 @@ public class Animal {
 		this.dateOfBirth = dateOfBirth;
 	}
 
+	public String getDescription() {
+		return description;
+	}
+
+	public void setDescription(String description) {
+		this.description = description;
+	}
+
 	@Override
 	public String toString() {
 		return "Animal{" +
 				"name='" + name + '\'' +
 				", namespace='" + namespace + '\'' +
 				", dateOfBirth=" + dateOfBirth +
+				", description='" + description + '\'' +
 				'}';
 	}
 }

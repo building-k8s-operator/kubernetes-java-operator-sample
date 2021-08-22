@@ -1,4 +1,4 @@
-package io.spring.cloud.samples.animalrescue.backend;
+package com.example.operator.adoptioncenter;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

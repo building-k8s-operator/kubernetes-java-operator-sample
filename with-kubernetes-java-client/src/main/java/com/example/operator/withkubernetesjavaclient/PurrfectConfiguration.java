@@ -20,7 +20,7 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-@Configuration
+@Configuration(proxyBeanMethods = false)
 public class PurrfectConfiguration {
 
 	private static final Logger LOG = LoggerFactory.getLogger(PurrfectConfiguration.class);

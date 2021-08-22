@@ -7,5 +7,5 @@ management:
       exposure:
         include: "*"
 
-logging.level:
-  org.springframework.data: debug
+adoption-center:
+  animals: []

@@ -1,7 +1,17 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 namespace: adoption-operator
+
+configMapGenerator:
+- name: animals-configmap
+  files:
+  - application-animals.yaml
+
+generatorOptions:
+  disableNameSuffixHash: true
+
 resources:
+  - adoption-center-deployment.yaml
   - operator-namespace.yaml
   - operator-deployment.yaml
   - operator-resources-role.yaml

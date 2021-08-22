@@ -15,10 +15,7 @@ repositories {
 dependencies {
 	implementation(enforcedPlatform(org.springframework.boot.gradle.plugin.SpringBootPlugin.BOM_COORDINATES))
 	implementation("org.springframework.boot:spring-boot-starter-actuator")
-	implementation("org.springframework.boot:spring-boot-starter-data-jdbc")
 	implementation("org.springframework.boot:spring-boot-starter-webflux")
-
-    runtimeOnly("com.h2database:h2")
 
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
 }
@@ -27,4 +24,7 @@ tasks {
     test {
     	useJUnitPlatform()
     }
+	jar {
+		enabled = false
+	}
 }

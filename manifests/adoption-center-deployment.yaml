@@ -6,15 +6,13 @@ metadata:
     app.kubernetes.io/part-of: adoption-operator
 spec:
   replicas: 1
-  updateStrategy:
-    type: RollingUpdate
   selector:
     matchLabels:
       app: adoption-center
   template:
     metadata:
       labels:
-        app: cat-adoption-operator
+        app: adoption-center
     spec:
       containers:
         - name: adoption-center
@@ -29,14 +27,14 @@ spec:
               cpu: "500m"
           livenessProbe:
             httpGet:
-              port: "8080"
+              port: 8080
               path: actuator/health/liveness
               scheme: HTTP
             initialDelaySeconds: 3
             periodSeconds: 3
           readinessProbe:
             httpGet:
-              port: "8080"
+              port: 8080
               path: actuator/health/readiness
               scheme: HTTP
             initialDelaySeconds: 5
@@ -45,17 +43,16 @@ spec:
             successThreshold: 1
             timeoutSeconds: 1
           env:
-          - name: something # TODO: add data.sql to classpath
-            value: /workspace/animals/data.sql
+          - name: SPRING_CONFIG_LOCATION
+            value: /config/rescue/application-animals.yaml
+          - name: spring.profiles.active
+            value: animals
           volumeMounts:
-          - mountPath: /workspace/animals
+          - mountPath: /config/rescue/
             name: animals-volume
       volumes:
         - name: animals-volume
           configMap:
-            name: animals
-            items:
-              - key: data.sql
-                path: data.sql
+            name: animals-configmap
       restartPolicy: Always
       terminationGracePeriodSeconds: 10
