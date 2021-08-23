@@ -17,7 +17,7 @@ spec:
       containers:
         - name: adoption-center
           image: springcloudservices/adoption-center
-          imagePullPolicy: Always
+          imagePullPolicy: IfNotPresent
           resources:
             requests:
               memory: "256Mi"
@@ -25,23 +25,23 @@ spec:
             limits:
               memory: "512Mi"
               cpu: "500m"
-          livenessProbe:
-            httpGet:
-              port: 8080
-              path: actuator/health/liveness
-              scheme: HTTP
-            initialDelaySeconds: 3
-            periodSeconds: 3
-          readinessProbe:
-            httpGet:
-              port: 8080
-              path: actuator/health/readiness
-              scheme: HTTP
-            initialDelaySeconds: 5
-            failureThreshold: 10
-            periodSeconds: 3
-            successThreshold: 1
-            timeoutSeconds: 1
+#          livenessProbe:
+#            httpGet:
+#              port: 8080
+#              path: actuator/health/liveness
+#              scheme: HTTP
+#            initialDelaySeconds: 3
+#            periodSeconds: 3
+#          readinessProbe:
+#            httpGet:
+#              port: 8080
+#              path: actuator/health/readiness
+#              scheme: HTTP
+#            initialDelaySeconds: 5
+#            failureThreshold: 10
+#            periodSeconds: 3
+#            successThreshold: 1
+#            timeoutSeconds: 1
           env:
           - name: SPRING_CONFIG_LOCATION
             value: /config/rescue/application-animals.yaml
