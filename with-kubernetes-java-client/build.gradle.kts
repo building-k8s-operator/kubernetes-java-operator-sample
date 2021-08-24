@@ -22,6 +22,7 @@ dependencies {
 	implementation("io.kubernetes:client-java-spring-integration:${kubernetesJavaClientVersion}")
 	implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml")
 	implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
+
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
 }
 

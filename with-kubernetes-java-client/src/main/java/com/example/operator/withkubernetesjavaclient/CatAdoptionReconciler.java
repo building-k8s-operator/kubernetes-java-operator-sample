@@ -2,6 +2,7 @@ package com.example.operator.withkubernetesjavaclient;
 
 import com.example.operator.adoptioncenter.Animal;
 import com.example.operator.withkubernetesjavaclient.models.V1alpha1CatForAdoption;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import io.kubernetes.client.common.KubernetesObject;
 import io.kubernetes.client.extended.controller.reconciler.Reconciler;
 import io.kubernetes.client.extended.controller.reconciler.Request;
@@ -15,8 +16,6 @@ import io.kubernetes.client.openapi.models.V1ConfigMap;
 import io.kubernetes.client.openapi.models.V1ObjectReference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.yaml.snakeyaml.Yaml;
-import org.yaml.snakeyaml.constructor.Constructor;
 
 import org.springframework.stereotype.Component;
 
@@ -105,6 +104,10 @@ public class CatAdoptionReconciler implements Reconciler {
 			logFailureEvent(cat, "update adoption-center config map", e);
 			return new Result(true);
 		}
+		catch (JsonProcessingException e) {
+			logFailureEvent(cat, "serialize/deserialize yaml in adoption-center config map", e);
+			return new Result(true);
+		}
 
 		try {
 			if (toDelete) {
@@ -144,7 +147,7 @@ public class CatAdoptionReconciler implements Reconciler {
 							   reason, message, EventType.Normal);
 	}
 
-	private void logFailureEvent(V1alpha1CatForAdoption cat, String reason, ApiException e) {
+	private void logFailureEvent(V1alpha1CatForAdoption cat, String reason, Exception e) {
 		String message = String.format("Failed to %s for cat %s/%s",
 				reason,
 				cat.getMetadata().getNamespace(),
@@ -152,10 +155,8 @@ public class CatAdoptionReconciler implements Reconciler {
 		LOG.error(message);
 		eventRecorder.logEvent(
 				toObjectReference(cat),
-				new V1ObjectReference()
-						.namespace(cat.getMetadata().getNamespace())
-						.name("Finalizer"),
-				"ApiException",
+				null,
+				e.getClass().getName(),
 				message + ": " + e.getMessage(),
 				EventType.Warning);
 	}
@@ -168,5 +169,4 @@ public class CatAdoptionReconciler implements Reconciler {
 				.name(k8sObject.getMetadata().getName())
 				.namespace(k8sObject.getMetadata().getNamespace());
 	}
-
 }

@@ -7,6 +7,7 @@ import com.example.operator.adoptioncenter.Animal;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import io.kubernetes.client.informer.cache.Lister;
 import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
@@ -14,7 +15,6 @@ import io.kubernetes.client.openapi.models.V1ConfigMap;
 import io.kubernetes.client.openapi.models.V1ObjectMeta;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.yaml.snakeyaml.Yaml;
 
 import org.springframework.beans.factory.annotation.Value;
 
@@ -24,7 +24,6 @@ public class ConfigMapUpdater {
 
 	private static final Logger LOG = LoggerFactory.getLogger(ConfigMapUpdater.class);
 	private static final ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
-	private static final Yaml yaml = new Yaml();
 
 	private final CoreV1Api coreV1Api;
 	private final Lister<V1ConfigMap> configMapLister;
@@ -38,6 +37,8 @@ public class ConfigMapUpdater {
 			@Value("${adoption-center.namespace}") String namespace,
 			Lister<V1ConfigMap> configMapLister,
 			CoreV1Api coreV1Api) {
+		mapper.registerModule(new JavaTimeModule());
+
 		this.coreV1Api = coreV1Api;
 		this.configMapLister = configMapLister;
 		this.adoptionCenterConfigMapName = configMapName;
@@ -52,13 +53,13 @@ public class ConfigMapUpdater {
 		return (configMap != null);
 	}
 
-	public V1ConfigMap addAnimal(Animal animal) throws ApiException {
+	public V1ConfigMap addAnimal(Animal animal) throws ApiException, JsonProcessingException {
 		AnimalsProperties properties = getExistingAnimals();
 		properties.getAnimals().add(animal);
 		return updateConfigMap(properties);
 	}
 
-	public V1ConfigMap updateAnimal(Animal newAnimal) throws ApiException {
+	public V1ConfigMap updateAnimal(Animal newAnimal) throws ApiException, JsonProcessingException {
 		AnimalsProperties properties = getExistingAnimals();
 		Optional<Animal> oldAnimal = properties
 				.getAnimals()
@@ -70,13 +71,14 @@ public class ConfigMapUpdater {
 			properties.getAnimals().add(newAnimal);
 		}
 		else {
+			oldAnimal.get().setName(newAnimal.getName());
 			oldAnimal.get().setDateOfBirth(newAnimal.getDateOfBirth());
 			oldAnimal.get().setDescription(newAnimal.getDescription());
 		}
 		return updateConfigMap(properties);
 	}
 
-	public V1ConfigMap removeAnimal(Animal animalToRemove) throws ApiException {
+	public V1ConfigMap removeAnimal(Animal animalToRemove) throws ApiException, JsonProcessingException {
 		AnimalsProperties properties = getExistingAnimals();
 		properties.getAnimals().removeIf(animal -> isSameAnimal(animalToRemove, animal));
 		return updateConfigMap(properties);
@@ -87,28 +89,15 @@ public class ConfigMapUpdater {
 				&& animalInConfigMap.getNamespace().equals(animalInEvent.getNamespace());
 	}
 
-	private AnimalsProperties getExistingAnimals() {
+	private AnimalsProperties getExistingAnimals() throws JsonProcessingException {
 		V1ConfigMap configMap = configMapLister.namespace(adoptionCenterNamespace)
 		                                       .get(adoptionCenterConfigMapName);
 		String serializedAnimals = configMap.getData().get(adoptionCenterConfigMapKey);
-		try {
-			return mapper.readValue(serializedAnimals, ApplicationYaml.class).getAdoptionCenter();
-		}
-		catch (JsonProcessingException e) {
-			e.printStackTrace();
-			return null; //TODO
-		}
+		return mapper.readValue(serializedAnimals, ApplicationYaml.class).getAdoptionCenter();
 	}
 
-	private V1ConfigMap updateConfigMap(AnimalsProperties properties) throws ApiException {
-//		final String serializedContent = yaml.dumpAs(new ApplicationYaml(properties), Tag.MAP, null);
-		String serializedContent = "";
-		try {
-			serializedContent = mapper.writeValueAsString(new ApplicationYaml(properties));
-		}
-		catch (JsonProcessingException e) {
-			e.printStackTrace(); // TODO
-		}
+	private V1ConfigMap updateConfigMap(AnimalsProperties properties) throws JsonProcessingException, ApiException {
+		String serializedContent = mapper.writeValueAsString(new ApplicationYaml(properties));
 
 		V1ConfigMap configMap = new V1ConfigMap()
 				.apiVersion("v1")
