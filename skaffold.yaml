@@ -2,31 +2,31 @@ apiVersion: skaffold/v2beta21
 kind: Config
 build:
   artifacts:
-  - image: springcloudservices/adoption-operator
-    buildpacks:
-      builder: gcr.io/paketo-buildpacks/builder:base
-      dependencies:
-        paths:
-          - with-kubernetes-java-client/src/main/**
-          - with-kubernetes-java-client/build.gradle.kts
-          - adoption-center/src/main/**
-          - build.gradle.kts
-          - settings.gradle.kts
-  - image: springcloudservices/adoption-center
-    context: adoption-center
-    buildpacks:
-      builder: gcr.io/paketo-buildpacks/builder:base
-      dependencies:
-        paths:
-          - src/main/**
-          - build.gradle.kts
+    - image: springcloudservices/adoption-operator
+      custom:
+        buildCommand: |
+          ./gradlew :with-kubernetes-java-client:bootBuildImage \
+          --imageName="$IMAGE" --builder="gcr.io/paketo-buildpacks/builder:base"
+        dependencies:
+          paths:
+            - with-kubernetes-java-client/src/main/**
+            - with-kubernetes-java-client/build.gradle.kts
+            - build.gradle.kts
+    - image: springcloudservices/adoption-center
+      context: adoption-center
+      buildpacks:
+        builder: gcr.io/paketo-buildpacks/builder:base
+        dependencies:
+          paths:
+            - src/main/**
+            - build.gradle.kts
 deploy:
   kubectl:
     manifests:
-    - ./crds/custom-resource-definition.yaml
+      - ./crds/custom-resource-definition.yaml
     flags:
       apply:
-      - --force
+        - --force
   kustomize:
     paths:
       - manifests

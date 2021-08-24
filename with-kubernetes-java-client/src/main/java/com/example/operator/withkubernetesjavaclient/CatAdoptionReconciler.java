@@ -15,6 +15,8 @@ import io.kubernetes.client.openapi.models.V1ConfigMap;
 import io.kubernetes.client.openapi.models.V1ObjectReference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.yaml.snakeyaml.Yaml;
+import org.yaml.snakeyaml.constructor.Constructor;
 
 import org.springframework.stereotype.Component;
 
@@ -66,7 +68,7 @@ public class CatAdoptionReconciler implements Reconciler {
 	@Override
 	public Result reconcile(Request request) {
 		V1alpha1CatForAdoption cat = catLister.namespace(request.getNamespace()).get(request.getName());
-		LOG.debug("Expected state {}", cat);
+		LOG.trace("Expected state {}", cat);
 
 		final boolean toAdd = cat.getMetadata().getGeneration() == null
 				|| cat.getMetadata().getGeneration() == 1;
@@ -76,19 +78,23 @@ public class CatAdoptionReconciler implements Reconciler {
 
 		final boolean toDelete = cat.getMetadata().getDeletionTimestamp() != null;
 
-		if (!configMapUpdater.exists()) {
+		if (!configMapUpdater.configMapExists()) {
+			LOG.debug("The configMap we are managing is not pressent. Requeueing...");
 			return new Result(true);
 		}
 
 		Animal animal = catToAnimal(cat);
 		try {
 			if (toAdd) {
+				LOG.debug("Adding animal {} to configmap", animal);
 				V1ConfigMap updatedConfigMap = configMapUpdater.addAnimal(animal);
 				logSuccessEvent(cat, updatedConfigMap, "Added");
 			} else if (toUpdate) {
+				LOG.debug("Updating animal {} in configmap", animal);
 				V1ConfigMap updatedConfigMap = configMapUpdater.updateAnimal(animal);
 				logSuccessEvent(cat, updatedConfigMap,"Updated");
 			} else if (toDelete) {
+				LOG.debug("Removing animal {} from configmap", animal);
 				V1ConfigMap updatedConfigMap = configMapUpdater.removeAnimal(animal);
 				logSuccessEvent(cat, updatedConfigMap, "Removed");
 			} else {

@@ -76,15 +76,13 @@ public class PurrfectConfiguration {
 	}
 
 	@Bean
-	public Lister<V1ConfigMap> configMapLister(
+	public SharedIndexInformer<V1ConfigMap> configMapLister(
 			@Value("${adoption-center.namespace}") String adoptionCenterNamespace,
 			ApiClient apiClient,
 			SharedInformerFactory sharedInformerFactory) {
 		GenericKubernetesApi<V1ConfigMap, V1ConfigMapList> genericApi =
 				new GenericKubernetesApi<>(V1ConfigMap.class, V1ConfigMapList.class, "", "v1", "configmaps", apiClient);
-		SharedIndexInformer<V1ConfigMap> sharedIndexInformer = sharedInformerFactory
-				.sharedIndexInformerFor(genericApi, V1ConfigMap.class, 60 * 1000L, adoptionCenterNamespace);
-		return new Lister<>(sharedIndexInformer.getIndexer());
+		return sharedInformerFactory.sharedIndexInformerFor(genericApi, V1ConfigMap.class, 60 * 1000L, adoptionCenterNamespace);
 	}
 
 	@Bean
@@ -92,8 +90,9 @@ public class PurrfectConfiguration {
 	                                         @Value("${adoption-center.configMapName}") String configMapName,
 	                                         @Value("${adoption-center.configMapKey}") String configMapKey,
 	                                         @Value("${adoption-center.namespace}") String namespace,
-	                                         Lister<V1ConfigMap> configMapLister) {
+	                                         SharedIndexInformer<V1ConfigMap> sharedIndexInformer) {
 		CoreV1Api coreV1Api = new CoreV1Api(apiClient);
+		Lister<V1ConfigMap> configMapLister = new Lister<>(sharedIndexInformer.getIndexer());
 		return new ConfigMapUpdater(configMapName, configMapKey, namespace, configMapLister, coreV1Api);
 	}
 

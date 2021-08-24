@@ -7,5 +7,5 @@ management:
       exposure:
         include: "*"
 
-adoption-center:
+adoptionCenter:
   animals: []
