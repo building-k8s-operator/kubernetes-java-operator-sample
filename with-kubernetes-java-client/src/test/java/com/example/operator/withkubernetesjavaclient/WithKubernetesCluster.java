@@ -24,7 +24,6 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 import io.kubernetes.client.openapi.ApiClient;
-import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.util.ClientBuilder;
 import org.junit.jupiter.api.TestInstance;
 
@@ -40,11 +39,6 @@ public @interface WithKubernetesCluster {
 
 	@org.springframework.boot.test.context.TestConfiguration
 	class TestConfiguration {
-
-		@Bean
-		CoreV1Api coreV1Api(ApiClient client) {
-			return new CoreV1Api(client);
-		}
 
 		@Bean
 		ApiClient apiClient() throws IOException {

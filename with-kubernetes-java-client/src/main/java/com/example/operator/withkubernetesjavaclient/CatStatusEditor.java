@@ -30,7 +30,7 @@ public class CatStatusEditor {
 											 "}}",
 									 type,
 									 status,
-									 ZonedDateTime.now(ZoneOffset.UTC).toString(),
+									 ZonedDateTime.now(ZoneOffset.UTC),
 									 reason);
 		try {
 			PatchUtils.patch(

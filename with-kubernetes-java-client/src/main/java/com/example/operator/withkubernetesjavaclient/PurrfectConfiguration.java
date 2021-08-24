@@ -7,6 +7,9 @@ import com.example.operator.withkubernetesjavaclient.models.V1alpha1AdoptionCent
 import com.example.operator.withkubernetesjavaclient.models.V1alpha1AdoptionCenterList;
 import com.example.operator.withkubernetesjavaclient.models.V1alpha1CatForAdoption;
 import com.example.operator.withkubernetesjavaclient.models.V1alpha1CatForAdoptionList;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import io.kubernetes.client.extended.controller.Controller;
 import io.kubernetes.client.extended.controller.ControllerManager;
 import io.kubernetes.client.extended.controller.builder.ControllerBuilder;
@@ -15,6 +18,7 @@ import io.kubernetes.client.informer.SharedIndexInformer;
 import io.kubernetes.client.informer.SharedInformerFactory;
 import io.kubernetes.client.informer.cache.Lister;
 import io.kubernetes.client.openapi.ApiClient;
+import io.kubernetes.client.openapi.apis.AppsV1Api;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.openapi.apis.EventsV1Api;
 import io.kubernetes.client.openapi.models.V1ConfigMap;
@@ -122,14 +126,13 @@ public class PurrfectConfiguration {
 	}
 
 	@Bean
-	public ConfigMapUpdater configMapUpdater(ApiClient apiClient,
-	                                         @Value("${adoption-center.configMapName}") String configMapName,
-	                                         @Value("${adoption-center.configMapKey}") String configMapKey,
-	                                         @Value("${adoption-center.namespace}") String namespace,
-	                                         Lister<V1ConfigMap> configMapLister) {
-		CoreV1Api coreV1Api = new CoreV1Api(apiClient);
+	CoreV1Api coreV1Api(ApiClient client) {
+		return new CoreV1Api(client);
+	}
 
-		return new ConfigMapUpdater(configMapName, configMapKey, namespace, configMapLister, coreV1Api);
+	@Bean
+	AppsV1Api appsV1Api(ApiClient client) {
+		return new AppsV1Api(client);
 	}
 
 	@Bean
@@ -142,4 +145,10 @@ public class PurrfectConfiguration {
 		return new OperatorExampleComV1alpha1Api(client);
 	}
 
+	@Bean
+	static ObjectMapper yamlMapper() {
+		ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
+		mapper.registerModule(new JavaTimeModule());
+		return mapper;
+	}
 }

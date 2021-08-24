@@ -1,6 +1,5 @@
 package com.example.operator.withkubernetesjavaclient;
 
-import java.io.IOException;
 import java.util.UUID;
 
 import com.example.operator.withkubernetesjavaclient.apis.OperatorExampleComV1alpha1Api;
@@ -30,13 +29,13 @@ class CatFinalizerEditorComponentTest {
 	private String resourceName;
 
 	@BeforeAll
-	void createCrd() throws IOException, ApiException {
-		testK8sClient.createCrd();
+	void createCrd() {
+		testK8sClient.createCatCrd();
 	}
 
 	@AfterAll
 	void deleteCrd() {
-		testK8sClient.deleteCrdIfExists();
+		testK8sClient.deleteCatCrdIfExists();
 	}
 
 	@BeforeEach
@@ -59,6 +58,8 @@ class CatFinalizerEditorComponentTest {
 		V1alpha1CatForAdoption catFromApiServer = api.readNamespacedCatForAdoption(
 				resourceName, TEST_NAMESPACE, null, null);
 		assertThat(catFromApiServer.getMetadata().getFinalizers()).contains(FINALIZER_STRING);
+
+		finalizerEditor.remove(catFromApiServer); //Cleaning up finalizers
 	}
 
 	@Test

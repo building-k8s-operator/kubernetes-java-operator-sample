@@ -13,6 +13,7 @@ repositories {
 }
 
 val kubernetesJavaClientVersion = "13.0.0"
+val awaitilityVersion = "4.1.0"
 
 dependencies {
     implementation(enforcedPlatform(org.springframework.boot.gradle.plugin.SpringBootPlugin.BOM_COORDINATES))
@@ -24,6 +25,7 @@ dependencies {
 	implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
 
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
+	testImplementation("org.awaitility:awaitility:${awaitilityVersion}")
 }
 
 tasks {

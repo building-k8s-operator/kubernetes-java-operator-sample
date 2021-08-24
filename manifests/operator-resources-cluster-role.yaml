@@ -7,13 +7,11 @@ rules:
       - operator.example.com
     resources:
       - catsforadoption
-      - adoptioncenter
+      - adoptioncenters
     verbs:
       - get
       - list
       - watch
-      - create
-      - update
       - patch
 
   - apiGroups:

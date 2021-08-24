@@ -1,4 +1,3 @@
 adoption-center:
   namespace: adoption-operator
-  configMapName: animals-configmap
   configMapKey: application-animals.yaml

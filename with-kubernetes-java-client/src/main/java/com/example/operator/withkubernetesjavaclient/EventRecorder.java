@@ -29,7 +29,9 @@ public class EventRecorder {
 			eventsApi.createNamespacedEvent(
 					regardingObjectRef.getNamespace(),
 					new EventsV1Event()
-							.metadata(new V1ObjectMeta().generateName(regardingObjectRef.getName() + "-"))
+							.metadata(new V1ObjectMeta()
+									.generateName(regardingObjectRef.getName() + "-")
+									.namespace(regardingObjectRef.getNamespace()))
 							.type(type.toString())
 							.action(ACTION)
 							.reason(reason)

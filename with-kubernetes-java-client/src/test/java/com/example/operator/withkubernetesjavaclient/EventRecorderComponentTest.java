@@ -1,6 +1,5 @@
 package com.example.operator.withkubernetesjavaclient;
 
-import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
@@ -28,9 +27,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 class EventRecorderComponentTest {
 
 	private static final String TEST_NAMESPACE = "default";
-	private static final String TEST_CAT_NAME = "test-cat";
+	private static final String TEST_CONFIG_MAP_NAME = "test-config-map";
 
-	@Value("${adoption-center.configMapName}") private String configMapName;
 	@Value("${adoption-center.namespace}") private String configMapNamespace;
 	@Autowired private CoreV1Api coreV1Api;
 	@Autowired private TestK8sClient testK8sClient;
@@ -42,16 +40,17 @@ class EventRecorderComponentTest {
 	private String eventReason;
 
 	@BeforeAll
-	void createResources() throws IOException, ApiException {
-		testK8sClient.createCrd();
-//		testK8sClient.createDeployment(TEST_NAMESPACE, TEST_CAT_NAME);
+	void createResources() {
+		testK8sClient.createCatCrd();
+		testK8sClient.createNamespace(configMapNamespace);
+		testK8sClient.createConfigMap(configMapNamespace, TEST_CONFIG_MAP_NAME);
 	}
 
 	@AfterAll
 	void deleteResources() {
-		testK8sClient.deleteCat(TEST_NAMESPACE, TEST_CAT_NAME);
-		testK8sClient.deleteConfigMapIfExists(configMapNamespace, configMapName);
-		testK8sClient.deleteCrdIfExists();
+		testK8sClient.deleteConfigMapIfExists(configMapNamespace, TEST_CONFIG_MAP_NAME);
+		testK8sClient.deleteNamespace(configMapNamespace);
+		testK8sClient.deleteCatCrdIfExists();
 	}
 
 	@BeforeEach
@@ -62,7 +61,7 @@ class EventRecorderComponentTest {
 				                                                        .name("test-cat")));
 		related = toObjectReference(
 				new V1ConfigMap().metadata(new V1ObjectMeta().namespace(configMapNamespace)
-				                                             .name(configMapName)));
+				                                             .name(TEST_CONFIG_MAP_NAME)));
 	}
 
 	@Test
@@ -76,7 +75,7 @@ class EventRecorderComponentTest {
 		assertThat(events.get(0).getType()).isEqualTo(EventType.Normal.toString());
 		assertThat(events.get(0).getInvolvedObject()).isEqualTo(involved);
 		assertThat(events.get(0).getRelated()).isEqualTo(related);
-		assertThat(events.get(0).getLastTimestamp()).isNotNull();
+		assertThat(events.get(0).getEventTime()).isNotNull();
 	}
 
 	@Test
@@ -90,7 +89,7 @@ class EventRecorderComponentTest {
 		assertThat(events.get(0).getType()).isEqualTo(EventType.Normal.toString());
 		assertThat(events.get(0).getInvolvedObject()).isEqualTo(involved);
 		assertThat(events.get(0).getRelated()).isNull();
-		assertThat(events.get(0).getLastTimestamp()).isNotNull();
+		assertThat(events.get(0).getEventTime()).isNotNull();
 	}
 
 	@Test
@@ -105,7 +104,7 @@ class EventRecorderComponentTest {
 		assertThat(events.get(0).getType()).isEqualTo(EventType.Normal.toString());
 		assertThat(events.get(0).getInvolvedObject()).isEqualTo(reference);
 		assertThat(events.get(0).getRelated()).isEqualTo(related);
-		assertThat(events.get(0).getLastTimestamp()).isNotNull();
+		assertThat(events.get(0).getEventTime()).isNotNull();
 	}
 
 	private List<CoreV1Event> getEventsWithTargetReason() throws ApiException {

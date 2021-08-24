@@ -13,17 +13,11 @@
 
 package com.example.operator.withkubernetesjavaclient.models;
 
-import java.util.Objects;
-import java.util.Arrays;
-import com.google.gson.TypeAdapter;
-import com.google.gson.annotations.JsonAdapter;
-import com.google.gson.annotations.SerializedName;
-import com.google.gson.stream.JsonReader;
-import com.google.gson.stream.JsonWriter;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
-import java.io.IOException;
 import java.time.LocalDate;
+import java.util.Objects;
+
+import com.google.gson.annotations.SerializedName;
+import io.swagger.annotations.ApiModelProperty;
 
 /**
  * V1alpha1CatForAdoptionSpec
@@ -57,8 +51,7 @@ public class V1alpha1CatForAdoptionSpec {
    * Name of the adoption center to register this cat to
    * @return adoptionCenterName
   **/
-  @javax.annotation.Nullable
-  @ApiModelProperty(value = "Name of the adoption center to register this cat to")
+  @ApiModelProperty(required = true, value = "Name of the adoption center to register this cat to")
 
   public String getAdoptionCenterName() {
     return adoptionCenterName;
@@ -126,8 +119,7 @@ public class V1alpha1CatForAdoptionSpec {
    * The name of the cat
    * @return name
   **/
-  @javax.annotation.Nullable
-  @ApiModelProperty(value = "The name of the cat")
+  @ApiModelProperty(required = true, value = "The name of the cat")
 
   public String getName() {
     return name;
