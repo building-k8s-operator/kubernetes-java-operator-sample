@@ -1,6 +1,6 @@
 package com.example.operator.withkubernetesjavaclient;
 
-import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.UUID;
 
 import com.example.operator.withkubernetesjavaclient.apis.OperatorExampleComV1alpha1Api;
@@ -30,7 +30,7 @@ class CatFinalizerEditorComponentTest {
 	private String resourceName;
 
 	@BeforeAll
-	void createCrd() throws FileNotFoundException, ApiException {
+	void createCrd() throws IOException, ApiException {
 		testK8sClient.createCrd();
 	}
 

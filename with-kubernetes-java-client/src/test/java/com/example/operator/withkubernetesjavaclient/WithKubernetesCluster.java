@@ -16,7 +16,6 @@
 
 package com.example.operator.withkubernetesjavaclient;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Inherited;
@@ -40,7 +39,7 @@ import org.springframework.context.annotation.Bean;
 public @interface WithKubernetesCluster {
 
 	@org.springframework.boot.test.context.TestConfiguration
-	public class TestConfiguration {
+	class TestConfiguration {
 
 		@Bean
 		CoreV1Api coreV1Api(ApiClient client) {
@@ -52,7 +51,7 @@ public @interface WithKubernetesCluster {
 			return ClientBuilder.defaultClient();
 		}
 		@Bean
-		TestK8sClient testK8SClient(ApiClient apiClient) throws FileNotFoundException {
+		TestK8sClient testK8SClient(ApiClient apiClient) throws IOException {
 			return new TestK8sClient(apiClient);
 		}
 	}

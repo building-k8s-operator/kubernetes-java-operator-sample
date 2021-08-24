@@ -1,13 +1,16 @@
 package com.example.operator.withkubernetesjavaclient;
 
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.Collections;
 import java.util.Optional;
 import java.util.function.Consumer;
 
 import com.example.operator.withkubernetesjavaclient.apis.OperatorExampleComV1alpha1Api;
 import com.example.operator.withkubernetesjavaclient.models.V1alpha1CatForAdoption;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.google.gson.JsonSyntaxException;
 import io.kubernetes.client.common.KubernetesObject;
 import io.kubernetes.client.openapi.ApiClient;
@@ -24,7 +27,6 @@ import io.kubernetes.client.openapi.models.V1ObjectMeta;
 import okhttp3.Protocol;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.yaml.snakeyaml.Yaml;
 
 import org.springframework.stereotype.Component;
 
@@ -34,14 +36,14 @@ public class TestK8sClient {
 	private static final Logger LOGGER = LoggerFactory.getLogger(TestK8sClient.class);
 	private static final String CRD_PATH = "../crds/custom-resource-definition.yaml";
 
-	private final Yaml yaml = new Yaml();
 	private final ApiextensionsV1Api apiextensionsV1Api;
 	private final AppsV1Api appsV1Api;
 	private final CoreV1Api coreV1Api;
 	private final OperatorExampleComV1alpha1Api operatorExampleComV1alpha1Api;
 	private final V1CustomResourceDefinition crd;
+	private final ObjectMapper yaml;
 
-	public TestK8sClient(ApiClient apiClient) throws FileNotFoundException {
+	public TestK8sClient(ApiClient apiClient) throws IOException {
 		appsV1Api = new AppsV1Api(apiClient);
 
 		// TODO remove when https://github.com/kubernetes-client/java/pull/960 is released
@@ -51,7 +53,9 @@ public class TestK8sClient {
 		apiextensionsV1Api = new ApiextensionsV1Api(apiClient);
 		coreV1Api = new CoreV1Api(apiClient);
 		operatorExampleComV1alpha1Api = new OperatorExampleComV1alpha1Api(apiClient);
-		crd = yaml.loadAs(new FileInputStream(CRD_PATH), V1CustomResourceDefinition.class);
+		yaml = new ObjectMapper(new YAMLFactory());
+		yaml.registerModule(new JavaTimeModule());
+		crd = yaml.readValue(new FileInputStream(CRD_PATH), V1CustomResourceDefinition.class);
 	}
 
 	public boolean deploymentExists(String deploymentName) {
@@ -95,7 +99,7 @@ public class TestK8sClient {
 
 	public V1alpha1CatForAdoption createCat(Consumer<V1alpha1CatForAdoption> customizer) {
 		try {
-			V1alpha1CatForAdoption cat = yaml.loadAs(new FileInputStream("../manifests/test-cat.yaml"), V1alpha1CatForAdoption.class);
+			V1alpha1CatForAdoption cat = yaml.readValue(new FileInputStream("../manifests/test-cat.yaml"), V1alpha1CatForAdoption.class);
 			customizer.accept(cat);
 
 			return operatorExampleComV1alpha1Api.createNamespacedCatForAdoption(
@@ -120,9 +124,9 @@ public class TestK8sClient {
 		}
 	}
 
-	public String createCrd() throws FileNotFoundException, ApiException {
+	public String createCrd() throws IOException, ApiException {
 		V1CustomResourceDefinition definition;
-		definition = yaml.loadAs(
+		definition = yaml.readValue(
 				new FileInputStream(CRD_PATH),
 				V1CustomResourceDefinition.class
 		);
