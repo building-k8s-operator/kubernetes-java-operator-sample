@@ -26,6 +26,7 @@ class AnimalControllerTest {
 			.expectBody()
 			.jsonPath("$.length()").isEqualTo(4)
 			.jsonPath("$[0].name").isEqualTo("Chocobo")
+			.jsonPath("$[0].resourceName").isEqualTo("chocobo")
 			.jsonPath("$[0].namespace").isNotEmpty()
 			.jsonPath("$[0].dateOfBirth").isNotEmpty();
 	}

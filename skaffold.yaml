@@ -3,13 +3,15 @@ kind: Config
 build:
   artifacts:
   - image: springcloudservices/adoption-operator
-    context: with-kubernetes-java-client
     buildpacks:
       builder: gcr.io/paketo-buildpacks/builder:base
       dependencies:
         paths:
-          - src/main/**
+          - with-kubernetes-java-client/src/main/**
+          - with-kubernetes-java-client/build.gradle.kts
+          - adoption-center/src/main/**
           - build.gradle.kts
+          - settings.gradle.kts
   - image: springcloudservices/adoption-center
     context: adoption-center
     buildpacks:

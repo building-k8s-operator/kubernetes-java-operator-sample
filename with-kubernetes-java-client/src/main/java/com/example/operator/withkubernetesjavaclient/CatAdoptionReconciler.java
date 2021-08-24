@@ -1,5 +1,6 @@
 package com.example.operator.withkubernetesjavaclient;
 
+import com.example.operator.adoptioncenter.Animal;
 import com.example.operator.withkubernetesjavaclient.models.V1alpha1CatForAdoption;
 import io.kubernetes.client.common.KubernetesObject;
 import io.kubernetes.client.extended.controller.reconciler.Reconciler;
@@ -10,8 +11,8 @@ import io.kubernetes.client.informer.SharedIndexInformer;
 import io.kubernetes.client.informer.SharedInformer;
 import io.kubernetes.client.informer.cache.Lister;
 import io.kubernetes.client.openapi.ApiException;
+import io.kubernetes.client.openapi.models.V1ConfigMap;
 import io.kubernetes.client.openapi.models.V1ObjectReference;
-import io.kubernetes.client.openapi.models.V1Pod;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,25 +26,25 @@ public class CatAdoptionReconciler implements Reconciler {
 	private static final Logger LOG = LoggerFactory.getLogger(CatAdoptionReconciler.class);
 
 	private final SharedInformer<V1alpha1CatForAdoption> catInformer;
-
 	private final Lister<V1alpha1CatForAdoption> catLister;
-
 	private final CatFinalizerEditor catFinalizerEditor;
-
 	private final EventRecorder eventRecorder;
+	private final ConfigMapUpdater configMapUpdater;
 
 	public CatAdoptionReconciler(
 			SharedIndexInformer<V1alpha1CatForAdoption> catInformer,
 			CatFinalizerEditor catFinalizerEditor,
-			EventRecorder eventRecorder) {
+			EventRecorder eventRecorder,
+			ConfigMapUpdater configMapUpdater) {
 		this.catInformer = catInformer;
 		this.catLister = new Lister<>(catInformer.getIndexer());
 		this.catFinalizerEditor = catFinalizerEditor;
 		this.eventRecorder = eventRecorder;
+		this.configMapUpdater = configMapUpdater;
 	}
 
 	// *OPTIONAL*
-	// If you want to hold the controller from running util some condition..
+	// If you want to hold the controller from running util some condition
 	public boolean informerReady() {
 		return catInformer.hasSynced();
 	}
@@ -75,32 +76,29 @@ public class CatAdoptionReconciler implements Reconciler {
 
 		final boolean toDelete = cat.getMetadata().getDeletionTimestamp() != null;
 
+		if (!configMapUpdater.exists()) {
+			return new Result(true);
+		}
 
-//		RoutesDefinition routesDefinition = routesDefinitionResolver.getRoutes(cat);
-//		for (V1Pod pod : gatewayPods) {
-//			try {
-//				String hostHeader = ActuatorRoutesUpdater.buildHostHeader(request, pod);
-//				if (toDelete) {
-//					this.actuatorRoutesUpdater.deleteMapping(pod, routesDefinition, hostHeader);
-//					logSuccessEvent(cat, pod, "Deleted");
-//				}
-//				else if (toUpdate) {
-//					this.actuatorRoutesUpdater.updateMapping(pod, routesDefinition, hostHeader);
-//					logSuccessEvent(cat, pod, "Updated");
-//				}
-//				else if (toAdd) {
-//					this.actuatorRoutesUpdater.addMapping(pod, routesDefinition, hostHeader);
-//					logSuccessEvent(cat, pod, "Created");
-//				}
-//				else {
-//					LOG.error("Illegal state: received a request {} with nothing to do", request);
-//				}
-//			}
-//			catch (PodUpdateException e) {
-//				logFailureEvent(cat, pod, e);
-//				return new Result(true);
-//			}
-//		}
+		Animal animal = catToAnimal(cat);
+		try {
+			if (toAdd) {
+				V1ConfigMap updatedConfigMap = configMapUpdater.addAnimal(animal);
+				logSuccessEvent(cat, updatedConfigMap, "Added");
+			} else if (toUpdate) {
+				V1ConfigMap updatedConfigMap = configMapUpdater.updateAnimal(animal);
+				logSuccessEvent(cat, updatedConfigMap,"Updated");
+			} else if (toDelete) {
+				V1ConfigMap updatedConfigMap = configMapUpdater.removeAnimal(animal);
+				logSuccessEvent(cat, updatedConfigMap, "Removed");
+			} else {
+				LOG.error("Illegal state: received a request {} with nothing to do", request);
+			}
+		}
+		catch (ApiException e) {
+			logFailureEvent(cat, "update adoption-center config map", e);
+			return new Result(true);
+		}
 
 		try {
 			if (toDelete) {
@@ -111,19 +109,38 @@ public class CatAdoptionReconciler implements Reconciler {
 			}
 		}
 		catch (ApiException e) {
-			logFailureEvent(cat, e);
+			logFailureEvent(cat, "edit finalizer", e);
 			return new Result(true);
 		}
 
 		return new Result(false);
 	}
 
+	private Animal catToAnimal(V1alpha1CatForAdoption cat) {
+		Animal animal = new Animal();
+		animal.setResourceName(cat.getMetadata().getName());
+		animal.setNamespace(cat.getMetadata().getNamespace());
+		animal.setName(cat.getSpec().getName());
+		animal.setDescription(cat.getSpec().getDescription());
+		animal.setDateOfBirth(cat.getSpec().getDateOfBirth());
+		return animal;
+	}
+
 	private boolean finalizerNotFound(V1alpha1CatForAdoption cat) {
 		return cat.getMetadata().getFinalizers() == null || cat.getMetadata().getFinalizers().isEmpty();
 	}
 
-	private void logFailureEvent(V1alpha1CatForAdoption cat, ApiException e) {
-		String message = String.format("Failed to edit finalizer for cat %s/%s",
+	private void logSuccessEvent(V1alpha1CatForAdoption cat, V1ConfigMap updatedConfigMap, String reason) {
+		String message = String.format(
+				"Successfully updated adoption-center config map with %s/%s",
+				cat.getMetadata().getNamespace(), cat.getMetadata().getName());
+		eventRecorder.logEvent(toObjectReference(cat), toObjectReference(updatedConfigMap),
+							   reason, message, EventType.Normal);
+	}
+
+	private void logFailureEvent(V1alpha1CatForAdoption cat, String reason, ApiException e) {
+		String message = String.format("Failed to %s for cat %s/%s",
+				reason,
 				cat.getMetadata().getNamespace(),
 				cat.getMetadata().getName());
 		LOG.error(message);

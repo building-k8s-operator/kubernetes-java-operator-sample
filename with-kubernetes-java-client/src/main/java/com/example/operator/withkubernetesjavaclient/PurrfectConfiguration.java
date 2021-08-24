@@ -10,12 +10,17 @@ import io.kubernetes.client.extended.controller.builder.ControllerBuilder;
 import io.kubernetes.client.extended.controller.builder.DefaultControllerBuilder;
 import io.kubernetes.client.informer.SharedIndexInformer;
 import io.kubernetes.client.informer.SharedInformerFactory;
+import io.kubernetes.client.informer.cache.Lister;
 import io.kubernetes.client.openapi.ApiClient;
+import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.openapi.apis.EventsV1Api;
+import io.kubernetes.client.openapi.models.V1ConfigMap;
+import io.kubernetes.client.openapi.models.V1ConfigMapList;
 import io.kubernetes.client.util.generic.GenericKubernetesApi;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -68,6 +73,28 @@ public class PurrfectConfiguration {
 						"catsforadoption",
 						apiClient);
 		return sharedInformerFactory.sharedIndexInformerFor(genericApi, V1alpha1CatForAdoption.class, 0);
+	}
+
+	@Bean
+	public Lister<V1ConfigMap> configMapLister(
+			@Value("${adoption-center.namespace}") String adoptionCenterNamespace,
+			ApiClient apiClient,
+			SharedInformerFactory sharedInformerFactory) {
+		GenericKubernetesApi<V1ConfigMap, V1ConfigMapList> genericApi =
+				new GenericKubernetesApi<>(V1ConfigMap.class, V1ConfigMapList.class, "", "v1", "configmaps", apiClient);
+		SharedIndexInformer<V1ConfigMap> sharedIndexInformer = sharedInformerFactory
+				.sharedIndexInformerFor(genericApi, V1ConfigMap.class, 60 * 1000L, adoptionCenterNamespace);
+		return new Lister<>(sharedIndexInformer.getIndexer());
+	}
+
+	@Bean
+	public ConfigMapUpdater configMapUpdater(ApiClient apiClient,
+	                                         @Value("${adoption-center.configMapName}") String configMapName,
+	                                         @Value("${adoption-center.configMapKey}") String configMapKey,
+	                                         @Value("${adoption-center.namespace}") String namespace,
+	                                         Lister<V1ConfigMap> configMapLister) {
+		CoreV1Api coreV1Api = new CoreV1Api(apiClient);
+		return new ConfigMapUpdater(configMapName, configMapKey, namespace, configMapLister, coreV1Api);
 	}
 
 	@Bean

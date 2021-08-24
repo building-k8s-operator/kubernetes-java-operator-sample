@@ -33,6 +33,9 @@ spec:
                   type: string
                   format: date
                   description: Date of birth of the cat in the format defined in RFC 3339, e.g. 2018-03-20
+                description:
+                  type: string
+                  description: The description of the cat
             status:
               type: object
               properties:

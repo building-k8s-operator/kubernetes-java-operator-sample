@@ -16,6 +16,7 @@ val kubernetesJavaClientVersion = "13.0.0"
 
 dependencies {
     implementation(enforcedPlatform(org.springframework.boot.gradle.plugin.SpringBootPlugin.BOM_COORDINATES))
+	implementation(project(":adoption-center"))
 	implementation("org.springframework.boot:spring-boot-starter-actuator")
 
 	implementation("io.kubernetes:client-java:${kubernetesJavaClientVersion}")

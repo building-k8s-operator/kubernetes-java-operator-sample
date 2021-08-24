@@ -3,20 +3,20 @@
 set -euo pipefail
 
 readonly CLIENT_GEN_DIR="/tmp/kubernetes-client-gen"
-readonly MODULE_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")"/.. && pwd)"
+readonly PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")"/.. && pwd)"
 
-readonly CRD_MANIFEST_FILE=$MODULE_ROOT/crds/custom-resource-definition.yaml
+readonly CRD_MANIFEST_FILE=$PROJECT_ROOT/crds/custom-resource-definition.yaml
 
 readonly PACKAGE_NAME=com/example/operator/withkubernetesjavaclient
-readonly GENERATED_SOURCES_PATH=src/generated/java/$PACKAGE_NAME
+readonly GENERATED_SOURCES_PATH=with-kubernetes-java-client/src/generated/java/$PACKAGE_NAME
 
 deleteExisting() {
   kubectl delete -f $CRD_MANIFEST_FILE || true
   rm -Rf $CLIENT_GEN_DIR
   rm -Rf /tmp/gen-output
   rm -Rf /tmp/swagger
-  rm -Rf $MODULE_ROOT/$GENERATED_SOURCES_PATH/models/*
-  rm -Rf $MODULE_ROOT/$GENERATED_SOURCES_PATH/apis/*
+  rm -Rf $PROJECT_ROOT/$GENERATED_SOURCES_PATH/models/*
+  rm -Rf $PROJECT_ROOT/$GENERATED_SOURCES_PATH/apis/*
 }
 
 applyCrd() {
@@ -43,8 +43,8 @@ generate() {
 
 copyToProject() {
   echo "Copying generated to project"
-  cp -Rf /tmp/gen-output/src/main/java/$PACKAGE_NAME/models/ $MODULE_ROOT/$GENERATED_SOURCES_PATH/models
-  cp -Rf /tmp/gen-output/src/main/java/$PACKAGE_NAME/apis/   $MODULE_ROOT/$GENERATED_SOURCES_PATH/apis
+  cp -Rf /tmp/gen-output/src/main/java/$PACKAGE_NAME/models/ $PROJECT_ROOT/$GENERATED_SOURCES_PATH/models
+  cp -Rf /tmp/gen-output/src/main/java/$PACKAGE_NAME/apis/   $PROJECT_ROOT/$GENERATED_SOURCES_PATH/apis
 }
 
 deleteExisting
