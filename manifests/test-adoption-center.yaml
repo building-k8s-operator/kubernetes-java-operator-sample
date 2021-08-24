@@ -1,0 +1,4 @@
+apiVersion: "operator.example.com/v1alpha1"
+kind: AdoptionCenter
+metadata:
+  name: kittens-dream-land

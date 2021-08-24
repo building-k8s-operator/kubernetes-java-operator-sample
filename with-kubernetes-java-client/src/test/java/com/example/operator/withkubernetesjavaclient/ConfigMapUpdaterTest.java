@@ -23,6 +23,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -48,11 +49,31 @@ class ConfigMapUpdaterTest {
 	}
 
 	@Test
-	void configMapExists() {
-		mockGatewayLister(null);
-		assertThat(configMapUpdater.configMapExists()).isFalse();
+	void ensureConfigMapExists() throws ApiException, JsonProcessingException {
 		mockGatewayLister(defaultConfigMap());
-		assertThat(configMapUpdater.configMapExists()).isTrue();
+
+		configMapUpdater.ensureConfigMapExists();
+
+		verify(coreV1Api, never())
+				.createNamespacedConfigMap(anyString(), any(V1ConfigMap.class), isNull(), isNull(), isNull());
+	}
+
+	@Test
+	void createConfigMapIfDoesNotExist() throws ApiException, JsonProcessingException {
+		mockGatewayLister(null);
+
+		configMapUpdater.ensureConfigMapExists();
+
+		verify(coreV1Api).createNamespacedConfigMap(eq(TEST_NAMESPACE),
+						configMapArgumentCaptor.capture(), isNull(), isNull(), isNull());
+
+		assertThat(configMapArgumentCaptor.getValue().getMetadata().getName()).isEqualTo(TEST_CONFIG_MAP_NAME);
+		assertThat(configMapArgumentCaptor.getValue().getMetadata().getNamespace()).isEqualTo(TEST_NAMESPACE);
+		assertThat(configMapArgumentCaptor.getValue().getData()).containsKey(TEST_CONFIG_MAP_KEY);
+		assertThat(configMapArgumentCaptor.getValue().getData().get(TEST_CONFIG_MAP_KEY))
+				.isEqualTo("---\n" +
+						"adoptionCenter:\n" +
+						"  animals: []\n");
 	}
 
 	@Test

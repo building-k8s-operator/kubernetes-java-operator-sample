@@ -2,8 +2,6 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: adoption-center
-  labels:
-    app.kubernetes.io/part-of: adoption-operator
 spec:
   replicas: 1
   selector:

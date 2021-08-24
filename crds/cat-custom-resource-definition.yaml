@@ -36,6 +36,10 @@ spec:
                 description:
                   type: string
                   description: The description of the cat
+                adoptionCenterName:
+                  type: string
+                  description: Name of the adoption center to register this cat to
+              required: ["adoptionCenterName", "name"]
             status:
               type: object
               properties:

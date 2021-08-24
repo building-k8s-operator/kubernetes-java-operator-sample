@@ -30,6 +30,10 @@ import java.time.LocalDate;
  */
 
 public class V1alpha1CatForAdoptionSpec {
+  public static final String SERIALIZED_NAME_ADOPTION_CENTER_NAME = "adoptionCenterName";
+  @SerializedName(SERIALIZED_NAME_ADOPTION_CENTER_NAME)
+  private String adoptionCenterName;
+
   public static final String SERIALIZED_NAME_DATE_OF_BIRTH = "dateOfBirth";
   @SerializedName(SERIALIZED_NAME_DATE_OF_BIRTH)
   private LocalDate dateOfBirth;
@@ -41,6 +45,29 @@ public class V1alpha1CatForAdoptionSpec {
   public static final String SERIALIZED_NAME_NAME = "name";
   @SerializedName(SERIALIZED_NAME_NAME)
   private String name;
+
+
+  public V1alpha1CatForAdoptionSpec adoptionCenterName(String adoptionCenterName) {
+    
+    this.adoptionCenterName = adoptionCenterName;
+    return this;
+  }
+
+   /**
+   * Name of the adoption center to register this cat to
+   * @return adoptionCenterName
+  **/
+  @javax.annotation.Nullable
+  @ApiModelProperty(value = "Name of the adoption center to register this cat to")
+
+  public String getAdoptionCenterName() {
+    return adoptionCenterName;
+  }
+
+
+  public void setAdoptionCenterName(String adoptionCenterName) {
+    this.adoptionCenterName = adoptionCenterName;
+  }
 
 
   public V1alpha1CatForAdoptionSpec dateOfBirth(LocalDate dateOfBirth) {
@@ -121,14 +148,15 @@ public class V1alpha1CatForAdoptionSpec {
       return false;
     }
     V1alpha1CatForAdoptionSpec v1alpha1CatForAdoptionSpec = (V1alpha1CatForAdoptionSpec) o;
-    return Objects.equals(this.dateOfBirth, v1alpha1CatForAdoptionSpec.dateOfBirth) &&
+    return Objects.equals(this.adoptionCenterName, v1alpha1CatForAdoptionSpec.adoptionCenterName) &&
+        Objects.equals(this.dateOfBirth, v1alpha1CatForAdoptionSpec.dateOfBirth) &&
         Objects.equals(this.description, v1alpha1CatForAdoptionSpec.description) &&
         Objects.equals(this.name, v1alpha1CatForAdoptionSpec.name);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(dateOfBirth, description, name);
+    return Objects.hash(adoptionCenterName, dateOfBirth, description, name);
   }
 
 
@@ -136,6 +164,7 @@ public class V1alpha1CatForAdoptionSpec {
   public String toString() {
     StringBuilder sb = new StringBuilder();
     sb.append("class V1alpha1CatForAdoptionSpec {\n");
+    sb.append("    adoptionCenterName: ").append(toIndentedString(adoptionCenterName)).append("\n");
     sb.append("    dateOfBirth: ").append(toIndentedString(dateOfBirth)).append("\n");
     sb.append("    description: ").append(toIndentedString(description)).append("\n");
     sb.append("    name: ").append(toIndentedString(name)).append("\n");

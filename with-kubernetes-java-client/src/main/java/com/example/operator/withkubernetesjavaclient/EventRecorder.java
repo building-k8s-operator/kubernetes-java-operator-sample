@@ -34,6 +34,7 @@ public class EventRecorder {
 							.action(ACTION)
 							.reason(reason)
 							.note(message)
+							.reportingInstance(CatAdoptionReconciler.CONTROLLER_NAME)
 							.regarding(regardingObjectRef)
 							.related(relatedObjectRef)
 							.eventTime(OffsetDateTime.now())

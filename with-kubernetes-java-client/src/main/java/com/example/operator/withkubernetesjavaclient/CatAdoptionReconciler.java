@@ -81,17 +81,18 @@ public class CatAdoptionReconciler implements Reconciler {
 
 		final boolean toDelete = cat.getMetadata().getDeletionTimestamp() != null;
 
-		if (!configMapUpdater.configMapExists()) {
+		if (!configMapUpdater.configMapExists(cat.getSpec().getAdoptionCenterName())) {
 			logFailureEvent(cat, "find config map", new MissingResourceException("ConfigMap not found", V1ConfigMap.class.getName(), V1ConfigMap.class.getName()));
 			catStatusEditor.setCatStatus(cat, "Ready", "False", "ConfigMapNotFound");
 			return new Result(true);
 		}
 
 		Animal animal = catToAnimal(cat);
+
 		try {
 			if (toAdd) {
 				LOG.debug("Adding animal {} to configmap", animal);
-				V1ConfigMap updatedConfigMap = configMapUpdater.addAnimal(animal);
+				V1ConfigMap updatedConfigMap = configMapUpdater.addAnimal(animal, cat.getSpec().getAdoptionCenterName());
 				catStatusEditor.setCatStatus(cat, "Ready", "True", "CatAddedToConfigMap");
 				logSuccessEvent(cat, updatedConfigMap, "Added");
 			} else if (toUpdate) {

@@ -5,13 +5,15 @@ set -euo pipefail
 readonly CLIENT_GEN_DIR="/tmp/kubernetes-client-gen"
 readonly PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")"/.. && pwd)"
 
-readonly CRD_MANIFEST_FILE=$PROJECT_ROOT/crds/custom-resource-definition.yaml
+readonly CAT_CRD_MANIFEST_FILE=$PROJECT_ROOT/crds/cat-custom-resource-definition.yaml
+readonly ADOPTION_CENTER_CRD_MANIFEST_FILE=$PROJECT_ROOT/crds/adoption-center-custom-resource-definition.yaml
 
 readonly PACKAGE_NAME=com/example/operator/withkubernetesjavaclient
 readonly GENERATED_SOURCES_PATH=with-kubernetes-java-client/src/generated/java/$PACKAGE_NAME
 
 deleteExisting() {
-  kubectl delete -f $CRD_MANIFEST_FILE || true
+  kubectl delete -f $CAT_CRD_MANIFEST_FILE || true
+  kubectl delete -f $ADOPTION_CENTER_CRD_MANIFEST_FILE || true
   rm -Rf $CLIENT_GEN_DIR
   rm -Rf /tmp/gen-output
   rm -Rf /tmp/swagger
@@ -21,7 +23,8 @@ deleteExisting() {
 
 applyCrd() {
   echo "Applying CRD to the cluster"
-  kubectl apply -f $CRD_MANIFEST_FILE
+  kubectl apply -f $CAT_CRD_MANIFEST_FILE
+  kubectl apply -f $ADOPTION_CENTER_CRD_MANIFEST_FILE
 }
 
 generate() {
@@ -31,7 +34,7 @@ generate() {
 
   echo "Reading OpenAPI endpoint until CRD shows up"
   kubectl get --raw="/openapi/v2" > /tmp/swagger
-  while ! (grep -Fq '"CatForAdoption"' /tmp/swagger); do
+  while ! (grep -Fq '"CatForAdoption"' /tmp/swagger && grep -Fq '"AdoptionCenter"' /tmp/swagger); do
     echo "Waiting for CRD to be applied..."
     sleep 1
     kubectl get --raw="/openapi/v2" > /tmp/swagger

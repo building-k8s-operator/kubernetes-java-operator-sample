@@ -23,7 +23,8 @@ build:
 deploy:
   kubectl:
     manifests:
-      - ./crds/custom-resource-definition.yaml
+      - ./crds/cat-custom-resource-definition.yaml
+      - ./crds/adoption-center-custom-resource-definition.yaml
     flags:
       apply:
         - --force

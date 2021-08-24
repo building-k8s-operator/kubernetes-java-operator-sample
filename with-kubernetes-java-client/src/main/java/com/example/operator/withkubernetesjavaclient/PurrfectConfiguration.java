@@ -3,9 +3,12 @@ package com.example.operator.withkubernetesjavaclient;
 import java.time.Duration;
 
 import com.example.operator.withkubernetesjavaclient.apis.OperatorExampleComV1alpha1Api;
+import com.example.operator.withkubernetesjavaclient.models.V1alpha1AdoptionCenter;
+import com.example.operator.withkubernetesjavaclient.models.V1alpha1AdoptionCenterList;
 import com.example.operator.withkubernetesjavaclient.models.V1alpha1CatForAdoption;
 import com.example.operator.withkubernetesjavaclient.models.V1alpha1CatForAdoptionList;
 import io.kubernetes.client.extended.controller.Controller;
+import io.kubernetes.client.extended.controller.ControllerManager;
 import io.kubernetes.client.extended.controller.builder.ControllerBuilder;
 import io.kubernetes.client.extended.controller.builder.DefaultControllerBuilder;
 import io.kubernetes.client.informer.SharedIndexInformer;
@@ -30,16 +33,14 @@ public class PurrfectConfiguration {
 
 	private static final Logger LOG = LoggerFactory.getLogger(PurrfectConfiguration.class);
 
-	@Bean
-	public CommandLineRunner commandLineRunner(
-			SharedInformerFactory sharedInformerFactory, Controller catController) {
-		return args -> {
-			LOG.info("starting informers..");
-			sharedInformerFactory.startAllRegisteredInformers();
+	@Bean(destroyMethod = "shutdown")
+	ControllerManager controllerManager(SharedInformerFactory sharedInformerFactory, Controller[] controllers) {
+		return new ControllerManager(sharedInformerFactory, controllers);
+	}
 
-			LOG.info("running controller..");
-			catController.run();
-		};
+	@Bean
+	CommandLineRunner commandLineRunner(ControllerManager controllerManager) {
+		return args -> new Thread(controllerManager, "ControllerManager").start();
 	}
 
 	@Bean
@@ -62,6 +63,40 @@ public class PurrfectConfiguration {
 	}
 
 	@Bean
+	public Controller adoptionCenterController(
+			SharedInformerFactory sharedInformerFactory,
+			AdoptionCenterReconciler reconciler) {
+		DefaultControllerBuilder builder = ControllerBuilder.defaultBuilder(sharedInformerFactory);
+		builder = builder.watch(
+				(q) -> ControllerBuilder.controllerWatchBuilder(V1alpha1AdoptionCenter.class, q)
+				                        .withOnDeleteFilter((resource, cache) -> false)
+				                        .withOnUpdateFilter((oldOne, newOne) -> false)
+				                        .withOnAddFilter((resource) -> true)
+				                        .withResyncPeriod(Duration.ofMinutes(1))
+				                        .build());
+		builder.withWorkerCount(2);
+		return builder.withReconciler(reconciler)
+		              .withName(AdoptionCenterReconciler.CONTROLLER_NAME)
+		              .build();
+	}
+
+	@Bean
+	public Lister<V1alpha1AdoptionCenter> adoptionCenterInformer(
+			ApiClient apiClient, SharedInformerFactory sharedInformerFactory) {
+		GenericKubernetesApi<V1alpha1AdoptionCenter, V1alpha1AdoptionCenterList> genericApi =
+				new GenericKubernetesApi<>(
+						V1alpha1AdoptionCenter.class,
+						V1alpha1AdoptionCenterList.class,
+						"operator.example.com",
+						"v1alpha1",
+						"adoptioncenters",
+						apiClient);
+		SharedIndexInformer<V1alpha1AdoptionCenter> informer = sharedInformerFactory
+				.sharedIndexInformerFor(genericApi, V1alpha1AdoptionCenter.class, 0);
+		return new Lister<>(informer.getIndexer());
+	}
+
+	@Bean
 	public SharedIndexInformer<V1alpha1CatForAdoption> catInformer(
 			ApiClient apiClient, SharedInformerFactory sharedInformerFactory) {
 		GenericKubernetesApi<V1alpha1CatForAdoption, V1alpha1CatForAdoptionList> genericApi =
@@ -76,13 +111,14 @@ public class PurrfectConfiguration {
 	}
 
 	@Bean
-	public SharedIndexInformer<V1ConfigMap> configMapLister(
+	public Lister<V1ConfigMap> configMapLister(
 			@Value("${adoption-center.namespace}") String adoptionCenterNamespace,
 			ApiClient apiClient,
 			SharedInformerFactory sharedInformerFactory) {
 		GenericKubernetesApi<V1ConfigMap, V1ConfigMapList> genericApi =
 				new GenericKubernetesApi<>(V1ConfigMap.class, V1ConfigMapList.class, "", "v1", "configmaps", apiClient);
-		return sharedInformerFactory.sharedIndexInformerFor(genericApi, V1ConfigMap.class, 60 * 1000L, adoptionCenterNamespace);
+		SharedIndexInformer<V1ConfigMap> informer = sharedInformerFactory.sharedIndexInformerFor(genericApi, V1ConfigMap.class, 60 * 1000L, adoptionCenterNamespace);
+		return new Lister<>(informer.getIndexer());
 	}
 
 	@Bean
@@ -90,9 +126,9 @@ public class PurrfectConfiguration {
 	                                         @Value("${adoption-center.configMapName}") String configMapName,
 	                                         @Value("${adoption-center.configMapKey}") String configMapKey,
 	                                         @Value("${adoption-center.namespace}") String namespace,
-	                                         SharedIndexInformer<V1ConfigMap> sharedIndexInformer) {
+	                                         Lister<V1ConfigMap> configMapLister) {
 		CoreV1Api coreV1Api = new CoreV1Api(apiClient);
-		Lister<V1ConfigMap> configMapLister = new Lister<>(sharedIndexInformer.getIndexer());
+
 		return new ConfigMapUpdater(configMapName, configMapKey, namespace, configMapLister, coreV1Api);
 	}
 

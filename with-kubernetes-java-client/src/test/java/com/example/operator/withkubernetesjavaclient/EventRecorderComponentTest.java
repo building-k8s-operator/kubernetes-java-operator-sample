@@ -1,5 +1,6 @@
 package com.example.operator.withkubernetesjavaclient;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
@@ -12,10 +13,13 @@ import io.kubernetes.client.openapi.models.CoreV1Event;
 import io.kubernetes.client.openapi.models.V1ConfigMap;
 import io.kubernetes.client.openapi.models.V1ObjectMeta;
 import io.kubernetes.client.openapi.models.V1ObjectReference;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 
 import static com.example.operator.withkubernetesjavaclient.EventRecorder.toObjectReference;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -24,17 +28,31 @@ import static org.assertj.core.api.Assertions.assertThat;
 class EventRecorderComponentTest {
 
 	private static final String TEST_NAMESPACE = "default";
+	private static final String TEST_CAT_NAME = "test-cat";
 
-	@Autowired
-	private CoreV1Api coreV1Api;
-
-	@Autowired
-	private EventRecorder eventRecorder;
+	@Value("${adoption-center.configMapName}") private String configMapName;
+	@Value("${adoption-center.namespace}") private String configMapNamespace;
+	@Autowired private CoreV1Api coreV1Api;
+	@Autowired private TestK8sClient testK8sClient;
+	@Autowired private EventRecorder eventRecorder;
 
 	private V1ObjectReference involved;
 	private V1ObjectReference related;
 
 	private String eventReason;
+
+	@BeforeAll
+	void createResources() throws IOException, ApiException {
+		testK8sClient.createCrd();
+//		testK8sClient.createDeployment(TEST_NAMESPACE, TEST_CAT_NAME);
+	}
+
+	@AfterAll
+	void deleteResources() {
+		testK8sClient.deleteCat(TEST_NAMESPACE, TEST_CAT_NAME);
+		testK8sClient.deleteConfigMapIfExists(configMapNamespace, configMapName);
+		testK8sClient.deleteCrdIfExists();
+	}
 
 	@BeforeEach
 	void setUp() {
@@ -43,8 +61,8 @@ class EventRecorderComponentTest {
 				new V1alpha1CatForAdoption().metadata(new V1ObjectMeta().namespace(TEST_NAMESPACE)
 				                                                        .name("test-cat")));
 		related = toObjectReference(
-				new V1ConfigMap().metadata(new V1ObjectMeta().namespace(TEST_NAMESPACE)
-				                                             .name("test-config-map")));
+				new V1ConfigMap().metadata(new V1ObjectMeta().namespace(configMapNamespace)
+				                                             .name(configMapName)));
 	}
 
 	@Test

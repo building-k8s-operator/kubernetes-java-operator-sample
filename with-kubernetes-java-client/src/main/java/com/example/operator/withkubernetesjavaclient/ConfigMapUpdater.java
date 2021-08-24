@@ -1,5 +1,6 @@
 package com.example.operator.withkubernetesjavaclient;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -46,10 +47,10 @@ public class ConfigMapUpdater {
 		this.adoptionCenterNamespace = namespace;
 	}
 
-	public boolean configMapExists() {
+	public boolean configMapExists(String configMapName) {
 		LOG.debug("Getting configmap {}/{}", adoptionCenterNamespace, adoptionCenterConfigMapName);
 		V1ConfigMap configMap = configMapLister.namespace(adoptionCenterNamespace)
-		                                       .get(adoptionCenterConfigMapName);
+		                                       .get(configMapName);
 		return (configMap != null);
 	}
 
@@ -96,7 +97,29 @@ public class ConfigMapUpdater {
 		return mapper.readValue(serializedAnimals, ApplicationYaml.class).getAdoptionCenter();
 	}
 
+	private V1ConfigMap createConfigMap() throws JsonProcessingException, ApiException {
+		AnimalsProperties properties = new AnimalsProperties(Collections.emptyList());
+		V1ConfigMap configMap = getV1ConfigMap(properties);
+		return coreV1Api.createNamespacedConfigMap(
+				adoptionCenterNamespace,
+				configMap,
+				null,
+				null,
+				null);
+	}
+
 	private V1ConfigMap updateConfigMap(AnimalsProperties properties) throws JsonProcessingException, ApiException {
+		V1ConfigMap configMap = getV1ConfigMap(properties);
+		return coreV1Api.replaceNamespacedConfigMap(
+				configMap.getMetadata().getName(),
+				adoptionCenterNamespace,
+				configMap,
+				null,
+				null,
+				null);
+	}
+
+	private V1ConfigMap getV1ConfigMap(AnimalsProperties properties) throws JsonProcessingException {
 		String serializedContent = mapper.writeValueAsString(new ApplicationYaml(properties));
 
 		V1ConfigMap configMap = new V1ConfigMap()
@@ -106,13 +129,7 @@ public class ConfigMapUpdater {
 						.name(adoptionCenterConfigMapName)
 						.namespace(adoptionCenterNamespace)) // TODO: add owner reference
 				.data(singletonMap(adoptionCenterConfigMapKey, serializedContent));
-		return coreV1Api.replaceNamespacedConfigMap(
-				configMap.getMetadata().getName(),
-				adoptionCenterNamespace,
-				configMap,
-				null,
-				null,
-				null);
+		return configMap;
 	}
 
 	static class ApplicationYaml {

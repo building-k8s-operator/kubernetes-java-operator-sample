@@ -2,7 +2,6 @@ package com.example.operator.withkubernetesjavaclient;
 
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.util.Collections;
 import java.util.Optional;
 import java.util.function.Consumer;
 
@@ -19,12 +18,10 @@ import io.kubernetes.client.openapi.apis.ApiextensionsV1Api;
 import io.kubernetes.client.openapi.apis.AppsV1Api;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.openapi.models.V1ConfigMap;
-import io.kubernetes.client.openapi.models.V1ConfigMapList;
 import io.kubernetes.client.openapi.models.V1CustomResourceDefinition;
 import io.kubernetes.client.openapi.models.V1Deployment;
 import io.kubernetes.client.openapi.models.V1DeploymentList;
 import io.kubernetes.client.openapi.models.V1ObjectMeta;
-import okhttp3.Protocol;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,7 +31,7 @@ import org.springframework.stereotype.Component;
 public class TestK8sClient {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(TestK8sClient.class);
-	private static final String CRD_PATH = "../crds/custom-resource-definition.yaml";
+	private static final String CAT_CRD_PATH = "../crds/cat-custom-resource-definition.yaml";
 
 	private final ApiextensionsV1Api apiextensionsV1Api;
 	private final AppsV1Api appsV1Api;
@@ -45,17 +42,12 @@ public class TestK8sClient {
 
 	public TestK8sClient(ApiClient apiClient) throws IOException {
 		appsV1Api = new AppsV1Api(apiClient);
-
-		// TODO remove when https://github.com/kubernetes-client/java/pull/960 is released
-		apiClient.setHttpClient(
-				apiClient.getHttpClient().newBuilder().protocols(Collections.singletonList(Protocol.HTTP_1_1)).build());
-
 		apiextensionsV1Api = new ApiextensionsV1Api(apiClient);
 		coreV1Api = new CoreV1Api(apiClient);
 		operatorExampleComV1alpha1Api = new OperatorExampleComV1alpha1Api(apiClient);
 		yaml = new ObjectMapper(new YAMLFactory());
 		yaml.registerModule(new JavaTimeModule());
-		crd = yaml.readValue(new FileInputStream(CRD_PATH), V1CustomResourceDefinition.class);
+		crd = yaml.readValue(new FileInputStream(CAT_CRD_PATH), V1CustomResourceDefinition.class);
 	}
 
 	public boolean deploymentExists(String deploymentName) {
@@ -77,19 +69,6 @@ public class TestK8sClient {
 		catch (ApiException e) {
 			throw new RuntimeException(e);
 		}
-	}
-
-	public boolean configMapExists(String configMapName) throws ApiException {
-		V1ConfigMapList configMapList = coreV1Api.listNamespacedConfigMap("default", null, null, null, null,
-				null, null, null, null, null, null);
-
-		Optional<V1ConfigMap> configMap = configMapList.getItems().stream()
-		                                               .filter(v1ConfigMap ->
-				                                               configMapName.equals(v1ConfigMap.getMetadata()
-				                                                                               .getName()))
-		                                               .findFirst();
-
-		return configMap.isPresent();
 	}
 
 	public V1alpha1CatForAdoption createCatWithMetadata(String namespace, V1ObjectMeta metadata) {
@@ -127,13 +106,18 @@ public class TestK8sClient {
 	public String createCrd() throws IOException, ApiException {
 		V1CustomResourceDefinition definition;
 		definition = yaml.readValue(
-				new FileInputStream(CRD_PATH),
+				new FileInputStream(CAT_CRD_PATH),
 				V1CustomResourceDefinition.class
 		);
 
 		apiextensionsV1Api.createCustomResourceDefinition(definition, null, null, null);
 
 		return definition.getMetadata().getName();
+	}
+
+	public V1ConfigMap createConfigMap(String namespace, String name) throws ApiException {
+		V1ConfigMap body = new V1ConfigMap().metadata(new V1ObjectMeta().name(name).namespace(namespace));
+		return coreV1Api.createNamespacedConfigMap(namespace, body, null, null, null);
 	}
 
 	public void deleteDeploymentIfExists(String deploymentName) {
@@ -152,9 +136,9 @@ public class TestK8sClient {
 
 	}
 
-	public void deleteConfigMapIfExists(String configMap) {
+	public void deleteConfigMapIfExists(String namespace, String configMap) {
 		try {
-			coreV1Api.deleteNamespacedConfigMap(configMap, "default", null, null, null, null, null, null);
+			coreV1Api.deleteNamespacedConfigMap(configMap, namespace, null, null, null, null, null, null);
 		}
 		catch (ApiException e) {
 			if (e.getCode() == 404) {
