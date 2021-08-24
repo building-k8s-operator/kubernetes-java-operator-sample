@@ -5,7 +5,6 @@ import java.util.MissingResourceException;
 import com.example.operator.adoptioncenter.Animal;
 import com.example.operator.withkubernetesjavaclient.models.V1alpha1CatForAdoption;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import io.kubernetes.client.common.KubernetesObject;
 import io.kubernetes.client.extended.controller.reconciler.Reconciler;
 import io.kubernetes.client.extended.controller.reconciler.Request;
 import io.kubernetes.client.extended.controller.reconciler.Result;
@@ -15,11 +14,12 @@ import io.kubernetes.client.informer.SharedInformer;
 import io.kubernetes.client.informer.cache.Lister;
 import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.models.V1ConfigMap;
-import io.kubernetes.client.openapi.models.V1ObjectReference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.springframework.stereotype.Component;
+
+import static com.example.operator.withkubernetesjavaclient.EventRecorder.toObjectReference;
 
 @Component
 public class CatAdoptionReconciler implements Reconciler {
@@ -168,14 +168,5 @@ public class CatAdoptionReconciler implements Reconciler {
 				e.getClass().getName(),
 				message + ": " + e.getMessage(),
 				EventType.Warning);
-	}
-
-	public static V1ObjectReference toObjectReference(KubernetesObject k8sObject) {
-		return new V1ObjectReference()
-				.apiVersion(k8sObject.getApiVersion())
-				.kind(k8sObject.getKind())
-				.uid(k8sObject.getMetadata().getUid())
-				.name(k8sObject.getMetadata().getName())
-				.namespace(k8sObject.getMetadata().getNamespace());
 	}
 }

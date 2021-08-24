@@ -2,6 +2,7 @@ package com.example.operator.withkubernetesjavaclient;
 
 import java.time.OffsetDateTime;
 
+import io.kubernetes.client.common.KubernetesObject;
 import io.kubernetes.client.extended.event.EventType;
 import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.apis.EventsV1Api;
@@ -12,7 +13,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.springframework.lang.Nullable;
-import org.springframework.stereotype.Component;
 
 public class EventRecorder {
 
@@ -52,5 +52,14 @@ public class EventRecorder {
 			}
 			LOGGER.error(message + e.getResponseBody(), e);
 		}
+	}
+
+	public static V1ObjectReference toObjectReference(KubernetesObject k8sObject) {
+		return new V1ObjectReference()
+				.apiVersion(k8sObject.getApiVersion())
+				.kind(k8sObject.getKind())
+				.uid(k8sObject.getMetadata().getUid())
+				.name(k8sObject.getMetadata().getName())
+				.namespace(k8sObject.getMetadata().getNamespace());
 	}
 }
