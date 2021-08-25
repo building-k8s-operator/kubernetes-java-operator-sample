@@ -52,9 +52,7 @@ public class ConfigMapUpdater {
 	}
 
 	public V1ConfigMap addAnimal(Animal animal, String adoptionCenterName) throws ApiException, JsonProcessingException {
-		AnimalsProperties properties = getExistingAnimals(adoptionCenterName);
-		properties.getAnimals().add(animal);
-		return updateConfigMap(adoptionCenterName, properties);
+		return updateAnimal(animal, adoptionCenterName);
 	}
 
 	public V1ConfigMap updateAnimal(Animal newAnimal, String adoptionCenterName) throws ApiException, JsonProcessingException {

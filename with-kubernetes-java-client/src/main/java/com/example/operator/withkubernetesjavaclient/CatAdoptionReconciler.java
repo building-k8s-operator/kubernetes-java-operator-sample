@@ -57,12 +57,12 @@ public class CatAdoptionReconciler implements Reconciler {
 	}
 
 	public static boolean onDeleteFilter(V1alpha1CatForAdoption catForAdoption, Boolean cacheStatusUnknown) {
-		LOG.debug("Going to delete CatForAdoption: {}", catForAdoption);
-		return false;
+		LOG.debug("Going to delete CatForAdoption: {}", catForAdoption.getMetadata().getName());
+		return true;
 	}
 
 	public static boolean onAddFilter(V1alpha1CatForAdoption catForAdoption) {
-		LOG.debug("Received a new CatForAdoption: {}", catForAdoption);
+		LOG.debug("Received a new CatForAdoption: {}", catForAdoption.getMetadata().getName());
 		return true;
 	}
 
@@ -73,7 +73,7 @@ public class CatAdoptionReconciler implements Reconciler {
 	@Override
 	public Result reconcile(Request request) {
 		V1alpha1CatForAdoption cat = catLister.namespace(request.getNamespace()).get(request.getName());
-		LOG.trace("Expected state {}", cat);
+		LOG.debug("Expected state {}", cat);
 
 		final boolean toAdd = cat.getMetadata().getGeneration() == null
 				|| cat.getMetadata().getGeneration() == 1;
@@ -97,17 +97,16 @@ public class CatAdoptionReconciler implements Reconciler {
 			V1ConfigMap updatedConfigMap;
 			String reason;
 			if (toAdd) {
-				LOG.debug("Adding animal {} to configmap", animal);
+				addFinalizerIfNotFound(cat);
 				catStatusEditor.setCatStatus(cat, "Ready", "false", "AddingCatInConfigMap");
 				updatedConfigMap = configMapUpdater.addAnimal(animal, adoptionCenterName);
 				reason ="CatAddedToConfigMap";
 			} else if (toUpdate) {
-				LOG.debug("Updating animal {} in configmap", animal);
+				addFinalizerIfNotFound(cat);
 				catStatusEditor.setCatStatus(cat, "Ready", "false", "UpdatingCatInConfigMap");
 				updatedConfigMap = configMapUpdater.updateAnimal(animal, adoptionCenterName);
 				reason = "CatUpdatedInConfigMap";
 			} else if (toDelete) {
-				LOG.debug("Removing animal {} from configmap", animal);
 				catStatusEditor.setCatStatus(cat, "Ready", "false", "RemovingCatFromMConfigMap");
 				updatedConfigMap = configMapUpdater.removeAnimal(animal, adoptionCenterName);
 				reason = "CatRemovedFromConfigMap";
@@ -120,9 +119,12 @@ public class CatAdoptionReconciler implements Reconciler {
 
 			if (!toDelete) {
 				catStatusEditor.setCatStatus(cat, "Ready", "True", reason);
+			} else {
+				catFinalizerEditor.remove(cat);
 			}
 
 			logSuccessEvent(cat, updatedConfigMap, reason);
+			return new Result(false);
 		}
 		catch (ApiException e) {
 			e.printStackTrace();
@@ -134,20 +136,6 @@ public class CatAdoptionReconciler implements Reconciler {
 			return new Result(true);
 		}
 
-		try {
-			if (toDelete) {
-				catFinalizerEditor.remove(cat);
-			}
-			else if (finalizerNotFound(cat)) {
-				catFinalizerEditor.add(cat);
-			}
-		}
-		catch (ApiException e) {
-			logFailureEvent(cat, "edit finalizer", e.getCode() + " - " + e.getResponseBody(), e);
-			return new Result(true);
-		}
-
-		return new Result(false);
 	}
 
 	private Animal catToAnimal(V1alpha1CatForAdoption cat) {
@@ -160,8 +148,13 @@ public class CatAdoptionReconciler implements Reconciler {
 		return animal;
 	}
 
-	private boolean finalizerNotFound(V1alpha1CatForAdoption cat) {
-		return cat.getMetadata().getFinalizers() == null || cat.getMetadata().getFinalizers().isEmpty();
+	private void addFinalizerIfNotFound(V1alpha1CatForAdoption cat) throws ApiException {
+		LOG.debug("Checking for existing finalizers");
+		boolean notFound = cat.getMetadata().getFinalizers() == null || cat.getMetadata().getFinalizers().isEmpty();
+		if (notFound) {
+			LOG.debug("Finalizers not found, adding one");
+			catFinalizerEditor.add(cat);
+		}
 	}
 
 	private void logSuccessEvent(V1alpha1CatForAdoption cat, V1ConfigMap updatedConfigMap, String reason) {
