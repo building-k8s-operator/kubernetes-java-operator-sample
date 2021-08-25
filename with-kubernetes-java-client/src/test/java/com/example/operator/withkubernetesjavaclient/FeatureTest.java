@@ -1,24 +1,23 @@
 package com.example.operator.withkubernetesjavaclient;
 
-import java.time.Duration;
-import java.util.Optional;
-
-import com.example.operator.withkubernetesjavaclient.extensions.TestK8sClient;
-import com.example.operator.withkubernetesjavaclient.extensions.WithKubernetesCluster;
 import com.example.operator.withkubernetesjavaclient.models.V1alpha1AdoptionCenter;
 import io.kubernetes.client.openapi.models.V1ConfigMap;
 import io.kubernetes.client.openapi.models.V1Deployment;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+
+import java.time.Duration;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 
 @WithKubernetesCluster
+@Tag("acceptance")
 class FeatureTest {
 
 	@Value("${adoption-center.namespace}")

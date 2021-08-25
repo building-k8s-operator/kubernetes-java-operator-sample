@@ -14,7 +14,13 @@
  * limitations under the License.
  */
 
-package com.example.operator.withkubernetesjavaclient.extensions;
+package com.example.operator.withkubernetesjavaclient;
+
+import io.kubernetes.client.openapi.ApiClient;
+import io.kubernetes.client.util.ClientBuilder;
+import org.junit.jupiter.api.TestInstance;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Bean;
 
 import java.io.IOException;
 import java.lang.annotation.ElementType;
@@ -22,13 +28,6 @@ import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-
-import io.kubernetes.client.openapi.ApiClient;
-import io.kubernetes.client.util.ClientBuilder;
-import org.junit.jupiter.api.TestInstance;
-
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.annotation.Bean;
 
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)

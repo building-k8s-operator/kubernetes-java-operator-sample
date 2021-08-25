@@ -1,8 +1,5 @@
 package com.example.operator.withkubernetesjavaclient;
 
-import java.time.LocalDate;
-import java.util.Collections;
-
 import com.example.operator.adoptioncenter.Animal;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import io.kubernetes.client.informer.cache.Lister;
@@ -18,6 +15,9 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+
+import java.time.LocalDate;
+import java.util.Collections;
 
 import static com.example.operator.withkubernetesjavaclient.PurrfectConfiguration.yamlMapper;
 import static java.util.Collections.singletonList;

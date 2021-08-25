@@ -34,6 +34,18 @@ tasks {
     }
 }
 
+tasks.register<Test>("componentTest") {
+	useJUnitPlatform {
+		includeTags("component")
+	}
+}
+
+tasks.register<Test>("acceptanceTest") {
+	useJUnitPlatform {
+		includeTags("acceptance")
+	}
+}
+
 sourceSets {
 	main {
 		java {

@@ -1,9 +1,4 @@
-package com.example.operator.withkubernetesjavaclient.extensions;
-
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.util.Optional;
-import java.util.function.Consumer;
+package com.example.operator.withkubernetesjavaclient;
 
 import com.example.operator.withkubernetesjavaclient.apis.OperatorExampleComV1alpha1Api;
 import com.example.operator.withkubernetesjavaclient.models.V1alpha1AdoptionCenter;
@@ -26,8 +21,12 @@ import io.kubernetes.client.openapi.models.V1Namespace;
 import io.kubernetes.client.openapi.models.V1ObjectMeta;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import org.springframework.stereotype.Component;
+
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.util.Optional;
+import java.util.function.Consumer;
 
 @Component
 public class TestK8sClient {

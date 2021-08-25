@@ -1,10 +1,6 @@
 package com.example.operator.withkubernetesjavaclient;
 
-import java.util.UUID;
-
 import com.example.operator.withkubernetesjavaclient.apis.OperatorExampleComV1alpha1Api;
-import com.example.operator.withkubernetesjavaclient.extensions.TestK8sClient;
-import com.example.operator.withkubernetesjavaclient.extensions.WithKubernetesCluster;
 import com.example.operator.withkubernetesjavaclient.models.V1alpha1CatForAdoption;
 import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.models.V1ObjectMeta;
@@ -12,21 +8,27 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
-
 import org.springframework.beans.factory.annotation.Autowired;
+
+import java.util.UUID;
 
 import static com.example.operator.withkubernetesjavaclient.CatFinalizerEditor.FINALIZER_STRING;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @WithKubernetesCluster
+@Tag("component")
 class CatFinalizerEditorComponentTest {
 
 	private static final String TEST_NAMESPACE = "default";
 
-	@Autowired private OperatorExampleComV1alpha1Api api;
-	@Autowired private CatFinalizerEditor finalizerEditor;
-	@Autowired private TestK8sClient testK8sClient;
+	@Autowired
+	private OperatorExampleComV1alpha1Api api;
+	@Autowired
+	private CatFinalizerEditor finalizerEditor;
+	@Autowired
+	private TestK8sClient testK8sClient;
 
 	private String resourceName;
 

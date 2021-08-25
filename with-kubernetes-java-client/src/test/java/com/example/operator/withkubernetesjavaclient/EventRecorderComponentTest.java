@@ -1,11 +1,5 @@
 package com.example.operator.withkubernetesjavaclient;
 
-import java.util.List;
-import java.util.concurrent.ThreadLocalRandom;
-import java.util.stream.Collectors;
-
-import com.example.operator.withkubernetesjavaclient.extensions.TestK8sClient;
-import com.example.operator.withkubernetesjavaclient.extensions.WithKubernetesCluster;
 import com.example.operator.withkubernetesjavaclient.models.V1alpha1CatForAdoption;
 import io.kubernetes.client.extended.event.EventType;
 import io.kubernetes.client.openapi.ApiException;
@@ -17,24 +11,33 @@ import io.kubernetes.client.openapi.models.V1ObjectReference;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+
+import java.util.List;
+import java.util.concurrent.ThreadLocalRandom;
+import java.util.stream.Collectors;
 
 import static com.example.operator.withkubernetesjavaclient.EventRecorder.toObjectReference;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @WithKubernetesCluster
+@Tag("component")
 class EventRecorderComponentTest {
 
 	private static final String TEST_NAMESPACE = "default";
 	private static final String TEST_CONFIG_MAP_NAME = "test-config-map";
 
-	@Value("${adoption-center.namespace}") private String configMapNamespace;
-	@Autowired private CoreV1Api coreV1Api;
-	@Autowired private TestK8sClient testK8sClient;
-	@Autowired private EventRecorder eventRecorder;
+	@Value("${adoption-center.namespace}")
+	private String configMapNamespace;
+	@Autowired
+	private CoreV1Api coreV1Api;
+	@Autowired
+	private TestK8sClient testK8sClient;
+	@Autowired
+	private EventRecorder eventRecorder;
 
 	private V1ObjectReference involved;
 	private V1ObjectReference related;
