@@ -6,6 +6,7 @@ import io.kubernetes.client.extended.controller.reconciler.Request;
 import io.kubernetes.client.extended.controller.reconciler.Result;
 import io.kubernetes.client.extended.event.EventType;
 import io.kubernetes.client.informer.cache.Lister;
+import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.models.V1OwnerReference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,11 +48,21 @@ public class AdoptionCenterReconciler implements Reconciler {
 
 		try {
 			V1OwnerReference ownerReference = toOwnerReference(adoptionCenter);
-			configMapUpdater.createConfigMap(ownerReference);
+			if (!configMapUpdater.configMapExists(ownerReference.getName())) {
+				configMapUpdater.createConfigMap(ownerReference);
+			}
 			deploymentEditor.createDeployment(ownerReference);
 		}
+		catch (ApiException e) {
+			if (e.getCode() == 409) {
+				LOG.info("Required subresource is already present, skip creation.");
+				return new Result(false);
+			}
+			logFailureEvent(adoptionCenter, e.getCode() + " - " + e.getResponseBody(), e);
+			return new Result(true);
+		}
 		catch (Exception e) {
-			logFailureEvent(adoptionCenter, e);
+			logFailureEvent(adoptionCenter, e.getMessage(), e);
 			return new Result(true);
 		}
 		return new Result(false);
@@ -66,8 +77,8 @@ public class AdoptionCenterReconciler implements Reconciler {
 		                             .blockOwnerDeletion(true);
 	}
 
-	private void logFailureEvent(V1alpha1AdoptionCenter adoptionCenter, Exception e) {
-		String message = String.format("Failed to deploy adoption center %s: %s", adoptionCenter.getMetadata().getName(), e.getMessage());
+	private void logFailureEvent(V1alpha1AdoptionCenter adoptionCenter, String reason, Exception e) {
+		String message = String.format("Failed to deploy adoption center %s: %s", adoptionCenter.getMetadata().getName(), reason);
 		LOG.error(message);
 		eventRecorder.logEvent(
 				toObjectReference(adoptionCenter).namespace(adoptionCenterNamespace),

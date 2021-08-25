@@ -12,6 +12,8 @@ import io.kubernetes.client.openapi.apis.AppsV1Api;
 import io.kubernetes.client.openapi.models.V1Deployment;
 import io.kubernetes.client.openapi.models.V1OwnerReference;
 import io.kubernetes.client.util.PatchUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
@@ -19,6 +21,8 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class DeploymentEditor {
+
+	private static final Logger LOG = LoggerFactory.getLogger(DeploymentEditor.class);
 
 	private final AppsV1Api appsV1Api;
 	private final String adoptionCenterNamespace;
@@ -40,24 +44,27 @@ public class DeploymentEditor {
 		V1Deployment body = yamlMapper.readValue(deploymentYaml.getInputStream(), V1Deployment.class);
 		body.getMetadata().setName(ownerReference.getName());
 		body.getMetadata().setOwnerReferences(Collections.singletonList(ownerReference));
+		body.getSpec().getTemplate().getSpec().getVolumes().get(0).getConfigMap().setName(ownerReference.getName());
 		return appsV1Api.createNamespacedDeployment(adoptionCenterNamespace, body, null, null, null);
 	}
 
 	public V1Deployment restartDeployment(String adoptionCenterName) throws ApiException {
+		LOG.debug("Restarting deployment {}/{}", adoptionCenterNamespace, adoptionCenterName);
 		return PatchUtils.patch(
 				V1Deployment.class,
 				() -> appsV1Api.patchNamespacedDeploymentCall(
 						adoptionCenterName,
 						adoptionCenterNamespace,
-						new V1Patch("\"spec\": {\n" +
+						new V1Patch("{\"spec\": {\n" +
 								"        \"template\": {\n" +
 								"            \"metadata\": {\n" +
 								"                \"annotations\": {\n" +
-								"                    \"kubectl.kubernetes.io/restartedAt\": " + ZonedDateTime.now(ZoneOffset.UTC) + "\n" +
+								"                    \"kubectl.kubernetes.io/restartedAt\": \"" + ZonedDateTime.now(ZoneOffset.UTC) + "\"\n" +
 								"                }\n" +
 								"            }\n" +
 								"        }\n" +
-								"    }"),
+								"    }" +
+								"}"),
 						null, null, null, null, null),
 				V1Patch.PATCH_FORMAT_STRATEGIC_MERGE_PATCH,
 				appsV1Api.getApiClient());

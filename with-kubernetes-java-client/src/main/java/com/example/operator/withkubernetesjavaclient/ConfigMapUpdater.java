@@ -83,6 +83,7 @@ public class ConfigMapUpdater {
 	}
 
 	public V1ConfigMap createConfigMap(V1OwnerReference adoptionCenter) throws ApiException, JsonProcessingException {
+		LOG.debug("Creating config map {}/{}", adoptionCenterNamespace, adoptionCenter.getName());
 		AnimalsProperties properties = new AnimalsProperties(Collections.emptyList());
 		V1ConfigMap configMap = new V1ConfigMap()
 						.apiVersion("v1")

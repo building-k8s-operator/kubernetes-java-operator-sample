@@ -5,7 +5,7 @@ metadata:
   namespace: adoption-operator
 rules:
   - apiGroups:
-      - "" # "" indicates the core API group
+      - apps
     resources:
       - deployments
     verbs:

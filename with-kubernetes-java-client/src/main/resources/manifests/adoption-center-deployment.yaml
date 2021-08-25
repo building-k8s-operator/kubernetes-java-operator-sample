@@ -23,7 +23,7 @@ spec:
             limits:
               memory: "512Mi"
               cpu: "500m"
-#          livenessProbe:
+#          livenessProbe: # TODO add these probes back
 #            httpGet:
 #              port: 8080
 #              path: actuator/health/liveness

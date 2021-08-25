@@ -86,7 +86,7 @@ public class CatAdoptionReconciler implements Reconciler {
 		String adoptionCenterName = cat.getSpec().getAdoptionCenterName();
 
 		if (!configMapUpdater.configMapExists(adoptionCenterName)) {
-			logFailureEvent(cat, "find config map", new MissingResourceException("ConfigMap not found", V1ConfigMap.class.getName(), V1ConfigMap.class.getName()));
+			logFailureEvent(cat, "find config map", "The targeted adoption center may not be ready,", new MissingResourceException("ConfigMap not found", V1ConfigMap.class.getName(), V1ConfigMap.class.getName()));
 			catStatusEditor.setCatStatus(cat, "Ready", "False", "ConfigMapNotFound");
 			return new Result(true);
 		}
@@ -98,6 +98,7 @@ public class CatAdoptionReconciler implements Reconciler {
 			String reason;
 			if (toAdd) {
 				LOG.debug("Adding animal {} to configmap", animal);
+				catStatusEditor.setCatStatus(cat, "Ready", "false", "AddingCatInConfigMap");
 				updatedConfigMap = configMapUpdater.addAnimal(animal, adoptionCenterName);
 				reason ="CatAddedToConfigMap";
 			} else if (toUpdate) {
@@ -124,11 +125,12 @@ public class CatAdoptionReconciler implements Reconciler {
 			logSuccessEvent(cat, updatedConfigMap, reason);
 		}
 		catch (ApiException e) {
-			logFailureEvent(cat, "update adoption-center config map", e);
+			e.printStackTrace();
+			logFailureEvent(cat, "update adoption-center config map", e.getCode() + " - " + e.getResponseBody(), e);
 			return new Result(true);
 		}
 		catch (JsonProcessingException e) {
-			logFailureEvent(cat, "serialize/deserialize yaml in adoption-center config map", e);
+			logFailureEvent(cat, "serialize/deserialize yaml in adoption-center config map", e.getMessage(), e);
 			return new Result(true);
 		}
 
@@ -141,7 +143,7 @@ public class CatAdoptionReconciler implements Reconciler {
 			}
 		}
 		catch (ApiException e) {
-			logFailureEvent(cat, "edit finalizer", e);
+			logFailureEvent(cat, "edit finalizer", e.getCode() + " - " + e.getResponseBody(), e);
 			return new Result(true);
 		}
 
@@ -170,11 +172,9 @@ public class CatAdoptionReconciler implements Reconciler {
 							   reason, message, EventType.Normal);
 	}
 
-	private void logFailureEvent(V1alpha1CatForAdoption cat, String reason, Exception e) {
-		String message = String.format("Failed to %s for cat %s/%s",
-				reason,
-				cat.getMetadata().getNamespace(),
-				cat.getMetadata().getName());
+	private void logFailureEvent(V1alpha1CatForAdoption cat, String reason, String errorBody, Exception e) {
+		String message = String.format("Failed to %s for cat %s/%s: %s",
+				reason, cat.getMetadata().getNamespace(), cat.getMetadata().getName(), errorBody);
 		LOG.error(message);
 		eventRecorder.logEvent(
 				toObjectReference(cat),
