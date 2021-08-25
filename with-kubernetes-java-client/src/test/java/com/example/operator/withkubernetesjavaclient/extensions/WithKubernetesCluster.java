@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.example.operator.withkubernetesjavaclient;
+package com.example.operator.withkubernetesjavaclient.extensions;
 
 import java.io.IOException;
 import java.lang.annotation.ElementType;

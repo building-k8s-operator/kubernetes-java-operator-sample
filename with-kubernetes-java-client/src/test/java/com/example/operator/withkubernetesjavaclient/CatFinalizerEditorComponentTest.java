@@ -3,6 +3,8 @@ package com.example.operator.withkubernetesjavaclient;
 import java.util.UUID;
 
 import com.example.operator.withkubernetesjavaclient.apis.OperatorExampleComV1alpha1Api;
+import com.example.operator.withkubernetesjavaclient.extensions.TestK8sClient;
+import com.example.operator.withkubernetesjavaclient.extensions.WithKubernetesCluster;
 import com.example.operator.withkubernetesjavaclient.models.V1alpha1CatForAdoption;
 import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.models.V1ObjectMeta;

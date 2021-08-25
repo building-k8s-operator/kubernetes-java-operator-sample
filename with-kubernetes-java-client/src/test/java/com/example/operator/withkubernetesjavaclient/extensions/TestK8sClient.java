@@ -1,4 +1,4 @@
-package com.example.operator.withkubernetesjavaclient;
+package com.example.operator.withkubernetesjavaclient.extensions;
 
 import java.io.FileInputStream;
 import java.io.IOException;

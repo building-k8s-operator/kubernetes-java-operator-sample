@@ -4,6 +4,8 @@ import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
 
+import com.example.operator.withkubernetesjavaclient.extensions.TestK8sClient;
+import com.example.operator.withkubernetesjavaclient.extensions.WithKubernetesCluster;
 import com.example.operator.withkubernetesjavaclient.models.V1alpha1CatForAdoption;
 import io.kubernetes.client.extended.event.EventType;
 import io.kubernetes.client.openapi.ApiException;

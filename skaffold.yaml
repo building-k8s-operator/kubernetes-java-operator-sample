@@ -31,9 +31,3 @@ deploy:
   kustomize:
     paths:
       - manifests
-profiles:
-  - name: with-java-operator-sdk
-    patches:
-      - op: replace
-        path: /build/artifacts/0/context
-        value: with-java-operator-sdk
