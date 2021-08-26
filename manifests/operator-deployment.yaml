@@ -18,6 +18,8 @@ spec:
           env:
             - name: LOGGING_LEVEL_COM_EXAMPLE_OPERATOR
               value: debug
+            - name: ADOPTION_CENTER_IMAGE
+              value: springcloudservices/adoption-center@sha256:942d3a15c2e6eaed6ffe3b35ee534e1451ca71bd646ee82ba98dee6269b38a5f
           resources:
             requests:
               memory: "256Mi"

@@ -26,16 +26,19 @@ public class DeploymentEditor {
 
 	private final AppsV1Api appsV1Api;
 	private final String adoptionCenterNamespace;
+	private final String adoptionCenterImage;
 	private final ObjectMapper yamlMapper;
 	private final Resource deploymentYaml;
 
 	public DeploymentEditor(
 			@Value("classpath:manifests/adoption-center-deployment.yaml") Resource deploymentYaml,
 			@Value("${adoption-center.namespace}") String namespace,
+			@Value("${adoption-center.image}") String image,
 			AppsV1Api appsV1Api,
 			ObjectMapper yamlMapper) {
 		this.deploymentYaml = deploymentYaml;
 		this.adoptionCenterNamespace = namespace;
+		this.adoptionCenterImage = image;
 		this.appsV1Api = appsV1Api;
 		this.yamlMapper = yamlMapper;
 	}
@@ -48,6 +51,7 @@ public class DeploymentEditor {
 		body.getSpec().getSelector().getMatchLabels().put("app", ownerReference.getName());
 		body.getSpec().getTemplate().getMetadata().getLabels().put("app", ownerReference.getName());
 		body.getSpec().getTemplate().getSpec().getVolumes().get(0).getConfigMap().setName(ownerReference.getName());
+		body.getSpec().getTemplate().getSpec().getContainers().get(0).setImage(adoptionCenterImage);
 		return appsV1Api.createNamespacedDeployment(adoptionCenterNamespace, body, null, null, null);
 	}
 
