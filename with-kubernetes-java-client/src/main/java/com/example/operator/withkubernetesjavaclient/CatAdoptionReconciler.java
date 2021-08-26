@@ -79,7 +79,8 @@ public class CatAdoptionReconciler implements Reconciler {
 				|| cat.getMetadata().getGeneration() == 1;
 
 		final boolean toUpdate = cat.getMetadata().getGeneration() != null
-				&& cat.getMetadata().getGeneration() > 1;
+				&& cat.getMetadata().getGeneration() > 1
+				&& cat.getMetadata().getDeletionTimestamp() == null;
 
 		final boolean toDelete = cat.getMetadata().getDeletionTimestamp() != null;
 

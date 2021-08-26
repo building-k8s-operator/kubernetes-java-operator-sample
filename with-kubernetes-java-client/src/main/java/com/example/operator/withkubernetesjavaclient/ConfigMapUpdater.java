@@ -56,6 +56,7 @@ public class ConfigMapUpdater {
 	}
 
 	public V1ConfigMap updateAnimal(Animal newAnimal, String adoptionCenterName) throws ApiException, JsonProcessingException {
+		LOG.debug("Upserting animal {}/{} in config map {}", newAnimal.getNamespace(), newAnimal.getResourceName(), adoptionCenterName);
 		AnimalsProperties properties = getExistingAnimals(adoptionCenterName);
 		Optional<Animal> oldAnimal = properties
 				.getAnimals()
@@ -75,6 +76,7 @@ public class ConfigMapUpdater {
 	}
 
 	public V1ConfigMap removeAnimal(Animal animalToRemove, String adoptionCenterName) throws ApiException, JsonProcessingException {
+		LOG.debug("Removing animal {}/{} from config map {}", animalToRemove.getNamespace(), animalToRemove.getResourceName(), adoptionCenterName);
 		AnimalsProperties properties = getExistingAnimals(adoptionCenterName);
 		properties.getAnimals().removeIf(animal -> isSameAnimal(animalToRemove, animal));
 		return updateConfigMap(adoptionCenterName, properties);

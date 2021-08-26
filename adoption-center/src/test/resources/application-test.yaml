@@ -3,20 +3,20 @@ adoptionCenter:
     - name: Chocobo
       resourceName: chocobo
       namespace: boston
-      dateOfBirth: 2014-09-25
+      dateOfBirth: "2014-09-25"
       description: She is chubby, lazy, but always polite. She does not need much attention from you, but when she does, there is no way you can resist petting her.
     - name: Paprika
       resourceName: paprika
       namespace: boston
-      dateOfBirth: 2018-02-25
+      dateOfBirth: "2018-02-25"
       description: She is very active and funny, always in a mood to play and to be pet. Sometimes she gets too excited about playing so she run into walls and tables.
     - name: Sam
       resourceName: sam
       namespace: default
-      dateOfBirth: 2020-01-15
+      dateOfBirth: "2020-01-15"
       description: Sam loves to lay around and be lazy. He plays well with kids and a great companion for any family.
     - name: Mr. Huggins
       resourceName: mr-huggins
       namespace: seville
-      dateOfBirth: 2019-11-23
+      dateOfBirth: "2019-11-23"
       description: Mr. Huggins is fluffy and cuddly little pup. He loves tummy rubs and kisses.

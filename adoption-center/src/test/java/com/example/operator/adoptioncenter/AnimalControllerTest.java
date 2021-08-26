@@ -27,7 +27,7 @@ class AnimalControllerTest {
 			.jsonPath("$.length()").isEqualTo(4)
 			.jsonPath("$[0].name").isEqualTo("Chocobo")
 			.jsonPath("$[0].resourceName").isEqualTo("chocobo")
-			.jsonPath("$[0].namespace").isNotEmpty()
-			.jsonPath("$[0].dateOfBirth").isNotEmpty();
+			.jsonPath("$[0].namespace").isEqualTo("boston")
+			.jsonPath("$[0].dateOfBirth").isEqualTo("2014-09-25");
 	}
 }

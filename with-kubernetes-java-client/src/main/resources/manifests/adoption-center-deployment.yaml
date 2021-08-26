@@ -23,23 +23,18 @@ spec:
             limits:
               memory: "512Mi"
               cpu: "500m"
-#          livenessProbe: # TODO add these probes back
-#            httpGet:
-#              port: 8080
-#              path: actuator/health/liveness
-#              scheme: HTTP
-#            initialDelaySeconds: 3
-#            periodSeconds: 3
-#          readinessProbe:
-#            httpGet:
-#              port: 8080
-#              path: actuator/health/readiness
-#              scheme: HTTP
-#            initialDelaySeconds: 5
-#            failureThreshold: 10
-#            periodSeconds: 3
-#            successThreshold: 1
-#            timeoutSeconds: 1
+          ports:
+            - containerPort: 8080
+          readinessProbe:
+            httpGet:
+              port: 8080
+              path: actuator/health/readiness
+              scheme: HTTP
+            initialDelaySeconds: 20
+            failureThreshold: 10
+            periodSeconds: 3
+            successThreshold: 1
+            timeoutSeconds: 1
           env:
           - name: SPRING_CONFIG_LOCATION
             value: /config/rescue/application-animals.yaml

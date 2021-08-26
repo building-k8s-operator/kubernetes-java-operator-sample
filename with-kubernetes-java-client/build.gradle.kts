@@ -25,6 +25,7 @@ dependencies {
 	implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
 
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
+	testImplementation("org.springframework:spring-web")
 	testImplementation("org.awaitility:awaitility:${awaitilityVersion}")
 }
 

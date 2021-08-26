@@ -41,9 +41,12 @@ public class DeploymentEditor {
 	}
 
 	public V1Deployment createDeployment(V1OwnerReference ownerReference) throws IOException, ApiException {
+		LOG.debug("Creating deployment {}/{}", adoptionCenterNamespace, ownerReference.getName());
 		V1Deployment body = yamlMapper.readValue(deploymentYaml.getInputStream(), V1Deployment.class);
 		body.getMetadata().setName(ownerReference.getName());
 		body.getMetadata().setOwnerReferences(Collections.singletonList(ownerReference));
+		body.getSpec().getSelector().getMatchLabels().put("app", ownerReference.getName());
+		body.getSpec().getTemplate().getMetadata().getLabels().put("app", ownerReference.getName());
 		body.getSpec().getTemplate().getSpec().getVolumes().get(0).getConfigMap().setName(ownerReference.getName());
 		return appsV1Api.createNamespacedDeployment(adoptionCenterNamespace, body, null, null, null);
 	}
@@ -68,6 +71,5 @@ public class DeploymentEditor {
 						null, null, null, null, null),
 				V1Patch.PATCH_FORMAT_STRATEGIC_MERGE_PATCH,
 				appsV1Api.getApiClient());
-		//TODO wait until it's done
 	}
 }

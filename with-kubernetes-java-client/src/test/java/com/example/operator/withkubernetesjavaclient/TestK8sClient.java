@@ -1,5 +1,13 @@
 package com.example.operator.withkubernetesjavaclient;
 
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.time.Duration;
+import java.util.Optional;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.function.Consumer;
+
 import com.example.operator.withkubernetesjavaclient.apis.OperatorExampleComV1alpha1Api;
 import com.example.operator.withkubernetesjavaclient.models.V1alpha1AdoptionCenter;
 import com.example.operator.withkubernetesjavaclient.models.V1alpha1CatForAdoption;
@@ -7,6 +15,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import io.kubernetes.client.common.KubernetesObject;
+import io.kubernetes.client.extended.kubectl.Kubectl;
+import io.kubernetes.client.extended.kubectl.exception.KubectlException;
 import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.apis.ApiextensionsV1Api;
@@ -19,14 +29,17 @@ import io.kubernetes.client.openapi.models.V1Deployment;
 import io.kubernetes.client.openapi.models.V1DeploymentList;
 import io.kubernetes.client.openapi.models.V1Namespace;
 import io.kubernetes.client.openapi.models.V1ObjectMeta;
+import io.kubernetes.client.openapi.models.V1PodList;
+import org.awaitility.Durations;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Component;
 
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.util.Optional;
-import java.util.function.Consumer;
+import org.springframework.stereotype.Component;
+import org.springframework.util.SocketUtils;
+import org.springframework.web.util.UriBuilder;
+import org.springframework.web.util.UriComponentsBuilder;
+
+import static org.awaitility.Awaitility.await;
 
 @Component
 public class TestK8sClient {
@@ -68,6 +81,17 @@ public class TestK8sClient {
 			LOGGER.error("Delete API request failed: {}: {}, {}", e.getCode(), e.getMessage(), e.getResponseBody());
 			throw new RuntimeException(e);
 		}
+	}
+
+	public void waitForDeploymentReady(String namespace, String name) {
+		LOGGER.info("Waiting for deployment {}/{} is ready", namespace, name);
+		await()
+				.atMost(Duration.ofMinutes(2))
+				.until(() -> getDeployment(namespace, name)
+						.map(deployment ->
+								deployment.getStatus().getReplicas().equals(deployment.getStatus().getReadyReplicas()) &&
+										deployment.getStatus().getUnavailableReplicas() == null)
+						.orElse(false));
 	}
 
 	public void deleteDeploymentIfExists(String deploymentName) {
@@ -276,6 +300,56 @@ public class TestK8sClient {
 					namespaceName, e.getCode(), e.getMessage(), e.getResponseBody());
 			throw new RuntimeException(e);
 		}
+	}
+
+	private V1PodList listPods(String namespace, String labelSelector) throws ApiException {
+		return coreV1Api.listNamespacedPod(namespace, null, null, null, null,
+				labelSelector, null, null, null, null, null);
+	}
+
+	public void forwardDeployment(String namespace, String name, int port, Consumer<UriBuilder> consumer) throws Exception {
+		String podName = listPods(namespace, "app=" + name)
+				.getItems()
+				.stream()
+				.filter(pod -> pod.getMetadata().getDeletionTimestamp() == null)
+				.findFirst()
+				.get()
+				.getMetadata().getName();
+
+		forwardPod(namespace, podName, port, consumer);
+	}
+
+	public void forwardPod(String namespace, String name, int port, Consumer<UriBuilder> consumer) {
+		int localPort = SocketUtils.findAvailableTcpPort();
+
+		ExecutorService pool = Executors.newSingleThreadScheduledExecutor();
+		pool.execute(() -> {
+			try {
+				LOGGER.info("Port forwarding pod {} on port {}...", name, localPort);
+				Kubectl.portforward()
+				       .apiClient(appsV1Api.getApiClient())
+				       .namespace(namespace)
+				       .name(name)
+				       .ports(localPort, port)
+				       .execute();
+			}
+			catch (KubectlException e) {
+				e.printStackTrace();
+				throw new RuntimeException(e);
+			}
+		});
+
+		await().pollDelay(Durations.ONE_SECOND).until(() -> true); // Give port forward thread a second to start
+
+		consumer.accept(UriComponentsBuilder
+				.newInstance()
+				.scheme("http")
+				.host("localhost")
+				.port(localPort));
+
+		pool.shutdown();
+
+		LOGGER.info("Port forwarding on port {} stopped", localPort);
 	}
 
 	public static <T extends KubernetesObject> Consumer<T> nsCustomizer(String ns) {
