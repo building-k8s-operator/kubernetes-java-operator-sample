@@ -1,7 +1,5 @@
 package com.example.operator.withkubernetesjavaclient;
 
-import java.time.Duration;
-
 import com.example.operator.withkubernetesjavaclient.apis.OperatorExampleComV1alpha1Api;
 import com.example.operator.withkubernetesjavaclient.models.V1alpha1AdoptionCenter;
 import com.example.operator.withkubernetesjavaclient.models.V1alpha1AdoptionCenterList;
@@ -57,7 +55,6 @@ public class PurrfectConfiguration {
 				                        .withOnDeleteFilter(CatAdoptionReconciler::onDeleteFilter)
 				                        .withOnUpdateFilter(CatAdoptionReconciler::onUpdateFilter)
 				                        .withOnAddFilter(CatAdoptionReconciler::onAddFilter)
-				                        .withResyncPeriod(Duration.ofMinutes(1))
 				                        .build());
 		builder.withWorkerCount(2);
 		builder.withReadyFunc(reconciler::informerReady);
@@ -76,7 +73,6 @@ public class PurrfectConfiguration {
 				                        .withOnDeleteFilter((resource, cache) -> false)
 				                        .withOnUpdateFilter((oldOne, newOne) -> false)
 				                        .withOnAddFilter((resource) -> true)
-				                        .withResyncPeriod(Duration.ofMinutes(1))
 				                        .build());
 		builder.withWorkerCount(2);
 		return builder.withReconciler(reconciler)

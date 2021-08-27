@@ -1,4 +1,4 @@
 adoption-center:
   namespace: adoption-operator
   configMapKey: application-animals.yaml
-  image: springcloudservices/adoption-center
+  image: springcloudservices/adoption-center:latest
