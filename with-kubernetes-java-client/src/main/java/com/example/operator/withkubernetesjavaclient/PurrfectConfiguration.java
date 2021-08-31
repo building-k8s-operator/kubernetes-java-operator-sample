@@ -63,21 +63,20 @@ public class PurrfectConfiguration {
 		              .build();
 	}
 
-	@Bean
-	public Controller adoptionCenterController(
+	@Bean public Controller adoptionCenterController(
 			SharedInformerFactory sharedInformerFactory,
 			AdoptionCenterReconciler reconciler) {
-		DefaultControllerBuilder builder = ControllerBuilder.defaultBuilder(sharedInformerFactory);
-		builder = builder.watch(
-				(q) -> ControllerBuilder.controllerWatchBuilder(V1alpha1AdoptionCenter.class, q)
-				                        .withOnDeleteFilter((resource, cache) -> false)
-				                        .withOnUpdateFilter((oldOne, newOne) -> false)
-				                        .withOnAddFilter((resource) -> true)
-				                        .build());
-		builder.withWorkerCount(2);
-		return builder.withReconciler(reconciler)
-		              .withName(AdoptionCenterReconciler.CONTROLLER_NAME)
-		              .build();
+		return ControllerBuilder
+				.defaultBuilder(sharedInformerFactory)
+				.watch((q) -> ControllerBuilder
+						.controllerWatchBuilder(V1alpha1AdoptionCenter.class, q)
+						.withOnDeleteFilter((resource, cache) -> false)
+						.withOnUpdateFilter((oldOne, newOne) -> false)
+						.withOnAddFilter((resource) -> true)
+						.build())
+				.withReconciler(reconciler)
+				.withName(AdoptionCenterReconciler.CONTROLLER_NAME)
+				.build();
 	}
 
 	@Bean
