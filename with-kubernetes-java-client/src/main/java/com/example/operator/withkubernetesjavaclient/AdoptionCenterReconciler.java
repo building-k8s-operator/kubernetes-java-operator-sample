@@ -42,7 +42,6 @@ public class AdoptionCenterReconciler implements Reconciler {
 
 	@Override
 	public Result reconcile(Request request) {
-		LOG.debug("Received request {}", request);
 		V1alpha1AdoptionCenter adoptionCenter = adoptionCenterLister.get(request.getName());
 		LOG.debug("Received adoption center resource {}", adoptionCenter);
 
