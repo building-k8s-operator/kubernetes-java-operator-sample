@@ -2,11 +2,22 @@
 
 Sample operators leveraging [Kubernetes Java Client](https://github.com/kubernetes-client/java).
 
+## Requirements
+
+Project uses the following tools:
+
+* [skaffold](https://skaffold.dev/): to automate test environment setup. 
+* [kind](https://kind.sigs.k8s.io/): to create local K8s clusters for demo and testing. 
+* [kustomize](https://kustomize.io/): optional, only required for manual deployment.
+* [Gradle Wrapper](https://docs.gradle.org/7.1.1/userguide/gradle_wrapper.html): embedded version of gradle (no need to install anything) for project building and test execution.
+* Java JDK v11
+
 ## With Kubernetes Java Client
 
 ### Deployment
 
-The easiest way to get started is with [skaffold](https://skaffold.dev/):
+The easiest way to get started is with [skaffold](https://skaffold.dev/).
+If you don't have a K8s cluster already, create a local one with [kind](https://kind.sigs.k8s.io/).
 
 ```bash
 skaffold run # build and deploy and forget
@@ -14,6 +25,7 @@ skaffold delete # delete everything deployed with `skaffold run`
 ```
 
 If you'd like to ask skaffold to watch changes and rebuild or redeploy, you may run:
+
 ```bash
 skaffold dev # watch changes and automatically update deployment, tear down when stop the process.
 ```
@@ -55,12 +67,12 @@ curl localhost:8080/animals # Should see the new cat in the response
 ### Generating Java Classes from CRD
 
 ```bash
-./with-kubernetes-java-client/crds/generate-models-for-crd.sh
+./crds/generate-models-for-crd.sh
 ```
 
-THis script applies the CRDs to a kubernetes cluster, pulls the `openapi` endpoint of the API server, and generate classes based on the result there. 
+This script applies the CRDs to a kubernetes cluster, pulls the `openapi` endpoint of the API server, and generate classes based on the result there. 
 
-More information about the generator module can be found [here](https://github.com/building-k8s-operator/kubernetes-java-operator-sample#generating-java-classes-from-crd)  
+More information about the generator module can be found [here](https://github.com/kubernetes-client/gen).  
 
 ### Run tests
 
